@@ -23,11 +23,11 @@ class ChartOfAccountController extends Controller
     protected function getSettingId(Request $request): string
     {
         $defaultSettingId = '11111111-1111-1111-1111-111111111111';
-        
+
         if (!$request->session()->has('setting_id')) {
             $request->session()->put('setting_id', $defaultSettingId);
         }
-        
+
         return $request->session()->get('setting_id');
     }
 
@@ -39,7 +39,7 @@ class ChartOfAccountController extends Controller
         if ($request->ajax()) {
             return $this->getDataTableResponse($request);
         }
-        
+
         return view('chart_of_accounts.index');
     }
 
@@ -49,7 +49,7 @@ class ChartOfAccountController extends Controller
     private function getDataTableResponse(Request $request): JsonResponse
     {
         $settingId = $this->getSettingId($request);
-        
+
         $query = ChartOfAccount::getBySettingId($settingId)->with('parent');
 
         return DataTables::of($query)
@@ -94,7 +94,7 @@ class ChartOfAccountController extends Controller
             ->active()
             ->orderBy('code')
             ->get();
-            
+
         return view('chart_of_accounts.create', compact('parentAccounts'));
     }
 
@@ -107,13 +107,13 @@ class ChartOfAccountController extends Controller
         $validated['id'] = (string) Str::uuid();
         $validated['setting_id'] = $this->getSettingId($request);
         $validated['is_active'] = $request->boolean('is_active', true);
-        
+
         $account = ChartOfAccount::create($validated);
-        
+
         if (!$account->isRoot()) {
             $account->updatePath();
         }
-        
+
         return redirect()
             ->route('chart-of-accounts.index')
             ->with('success', 'Akun berhasil ditambahkan.');
@@ -135,31 +135,30 @@ class ChartOfAccountController extends Controller
     {
         $settingId = $this->getSettingId($request);
         $account = $this->findAccountOrFail($request, $id);
-        
+
         $parentAccounts = ChartOfAccount::getBySettingId($settingId)
             ->where('id', '!=', $id)
             ->active()
             ->orderBy('code')
             ->get();
-            
+
         return view('chart_of_accounts.edit', compact('account', 'parentAccounts'));
     }
 
     /**
      * Update the specified chart of account.
      */
-    public function update(UpdateChartOfAccountRequest $request, string $id): RedirectResponse
+    public function update(UpdateChartOfAccountRequest $request, ChartOfAccount $chart_of_account): RedirectResponse
     {
-        $account = $this->findAccountOrFail($request, $id);
         $validated = $request->validated();
         $validated['is_active'] = $request->boolean('is_active', true);
-        
-        $account->update($validated);
-        
-        if ($account->wasChanged('parent_id')) {
-            $account->updatePath();
+
+        $chart_of_account->update($validated);
+
+        if ($chart_of_account->wasChanged('parent_id')) {
+            $chart_of_account->updatePath();
         }
-        
+
         return redirect()
             ->route('chart-of-accounts.index')
             ->with('success', 'Akun berhasil diupdate.');
@@ -172,16 +171,16 @@ class ChartOfAccountController extends Controller
     {
         try {
             $account = $this->findAccountOrFail($request, $id);
-                
+
             if (!$account->isLeaf()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak dapat menghapus akun yang memiliki sub-akun.'
                 ]);
             }
-            
+
             $account->delete();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Akun berhasil dihapus.'

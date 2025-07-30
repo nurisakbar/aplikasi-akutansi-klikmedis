@@ -130,7 +130,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('accounts_receivable_id')->references('id')->on('akuntansi_accounts_receivable')->onDelete('cascade');
+            $table->foreign('accounts_receivable_id', 'ar_payments_ar_id_fk')->references('id')->on('akuntansi_accounts_receivable')->onDelete('cascade');
         });
 
         // Accounts Payable Payments
@@ -142,7 +142,7 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('accounts_payable_id')->references('id')->on('akuntansi_accounts_payable')->onDelete('cascade');
+            $table->foreign('accounts_payable_id', 'ap_payments_ap_id_fk')->references('id')->on('akuntansi_accounts_payable')->onDelete('cascade');
         });
 
         // Fixed Assets

@@ -1,0 +1,50 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // Rename existing tables with akuntansi_ prefix
+        Schema::rename('customers', 'akuntansi_customers');
+        Schema::rename('suppliers', 'akuntansi_suppliers');
+        Schema::rename('chart_of_accounts', 'akuntansi_chart_of_accounts');
+        Schema::rename('journal_entries', 'akuntansi_journal_entries');
+        Schema::rename('journal_entry_lines', 'akuntansi_journal_entry_lines');
+        Schema::rename('cash_bank_transactions', 'akuntansi_cash_bank_transactions');
+        Schema::rename('accounts_receivable', 'akuntansi_accounts_receivable');
+        Schema::rename('accounts_payable', 'akuntansi_accounts_payable');
+        Schema::rename('accounts_receivable_payments', 'akuntansi_accounts_receivable_payments');
+        Schema::rename('accounts_payable_payments', 'akuntansi_accounts_payable_payments');
+        Schema::rename('fixed_assets', 'akuntansi_fixed_assets');
+        Schema::rename('expenses', 'akuntansi_expenses');
+        Schema::rename('taxes', 'akuntansi_taxes');
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        // Revert table names back to original
+        Schema::rename('akuntansi_customers', 'customers');
+        Schema::rename('akuntansi_suppliers', 'suppliers');
+        Schema::rename('akuntansi_chart_of_accounts', 'chart_of_accounts');
+        Schema::rename('akuntansi_journal_entries', 'journal_entries');
+        Schema::rename('akuntansi_journal_entry_lines', 'journal_entry_lines');
+        Schema::rename('akuntansi_cash_bank_transactions', 'cash_bank_transactions');
+        Schema::rename('akuntansi_accounts_receivable', 'accounts_receivable');
+        Schema::rename('akuntansi_accounts_payable', 'accounts_payable');
+        Schema::rename('akuntansi_accounts_receivable_payments', 'accounts_receivable_payments');
+        Schema::rename('akuntansi_accounts_payable_payments', 'accounts_payable_payments');
+        Schema::rename('akuntansi_fixed_assets', 'fixed_assets');
+        Schema::rename('akuntansi_expenses', 'expenses');
+        Schema::rename('akuntansi_taxes', 'taxes');
+    }
+}; 

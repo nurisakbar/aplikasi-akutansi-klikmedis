@@ -167,19 +167,17 @@ class ChartOfAccountController extends Controller
     /**
      * Remove the specified chart of account.
      */
-    public function destroy(Request $request, string $id): JsonResponse
+    public function destroy(ChartOfAccount $chart_of_account): JsonResponse
     {
         try {
-            $account = $this->findAccountOrFail($request, $id);
-
-            if (!$account->isLeaf()) {
+            if (!$chart_of_account->isLeaf()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak dapat menghapus akun yang memiliki sub-akun.'
                 ]);
             }
 
-            $account->delete();
+            $chart_of_account->delete();
 
             return response()->json([
                 'success' => true,

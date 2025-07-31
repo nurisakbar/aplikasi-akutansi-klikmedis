@@ -29,17 +29,47 @@ use App\Http\Controllers\SupplierController;
 |
 */
 
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATION ROUTES
+|--------------------------------------------------------------------------
+| Routes untuk autentikasi (login, register, logout)
+*/
+
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('auth.login');
 });
+
+// Auth Routes
+Route::prefix('auth')->group(function () {
+    Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('auth.login');
+    Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('auth.login.post');
+    Route::get('register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegisterForm'])->name('auth.register');
+    Route::post('register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('auth.register.post');
+    Route::post('logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('auth.logout');
+});
+
+// Default logout route for AdminLTE compatibility
+Route::post('logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('logout');
 
 /*
 |--------------------------------------------------------------------------
-| DATA MASTER ROUTES
+| PROTECTED ROUTES (Require Authentication)
 |--------------------------------------------------------------------------
-| Routes untuk data master/referensi yang relatif statis dan digunakan
-| sebagai referensi oleh data transaksional lainnya
+| Routes yang memerlukan autentikasi dan terkait dengan data akuntansi
 */
+
+Route::middleware(['auth', 'has.company'])->group(function () {
+    // Profile routes
+    Route::get('profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    /*
+    |--------------------------------------------------------------------------
+    | DATA MASTER ROUTES
+    |--------------------------------------------------------------------------
+    | Routes untuk data master/referensi yang relatif statis dan digunakan
+    | sebagai referensi oleh data transaksional lainnya
+    */
 
 // Master Data - Chart of Accounts (Bagan Akun)
 Route::get('chart-of-accounts/export', [ChartOfAccountController::class, 'export'])->name('chart-of-accounts.export');
@@ -124,3 +154,4 @@ Route::get('balance-sheet/export', [App\Http\Controllers\BalanceSheetController:
 // Financial Reports - Profit & Loss (Laba Rugi)
 Route::get('profit-loss', [App\Http\Controllers\ProfitLossController::class, 'index'])->name('profit-loss.index');
 Route::get('profit-loss/export', [App\Http\Controllers\ProfitLossController::class, 'export'])->name('profit-loss.export');
+});

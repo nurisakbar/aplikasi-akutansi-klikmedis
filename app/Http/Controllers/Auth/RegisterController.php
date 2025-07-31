@@ -1,0 +1,109 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Services\Auth\AuthServiceInterface;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class RegisterController extends Controller
+{
+    protected $authService;
+
+    public function __construct(AuthServiceInterface $authService)
+    {
+        $this->authService = $authService;
+    }
+
+    /**
+     * Show the register form
+     */
+    public function showRegisterForm()
+    {
+        if (Auth::check()) {
+            return redirect()->route('chart-of-accounts.index');
+        }
+        return view('auth.register');
+    }
+
+    /**
+     * Handle register request
+     */
+    public function register(RegisterRequest $request)
+    {
+        if ($request->ajax()) {
+            // Prepare company data
+            $companyData = [
+                'name' => $request->company_name,
+                'address' => $request->company_address,
+                'province' => $request->company_province,
+                'city' => $request->company_city,
+                'district' => $request->company_district,
+                'postal_code' => $request->company_postal_code,
+                'email' => $request->company_email,
+                'phone' => $request->company_phone,
+                'website' => $request->company_website,
+            ];
+
+            // Prepare user data
+            $userData = [
+                'name' => $request->owner_name,
+                'email' => $request->owner_email,
+                'password' => $request->password,
+                'role' => 'admin',
+            ];
+
+            $result = $this->authService->registerCompany($companyData, $userData);
+
+            if ($result['success']) {
+                // Auto login after successful registration
+                Auth::login($result['user']);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pendaftaran berhasil! Selamat datang di sistem akuntansi kami.',
+                    'redirect' => route('chart-of-accounts.index')
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message']
+                ], 422);
+            }
+        }
+
+        // Non-AJAX fallback
+        $companyData = [
+            'name' => $request->company_name,
+            'address' => $request->company_address,
+            'province' => $request->company_province,
+            'city' => $request->company_city,
+            'district' => $request->company_district,
+            'postal_code' => $request->company_postal_code,
+            'email' => $request->company_email,
+            'phone' => $request->company_phone,
+            'website' => $request->company_website,
+        ];
+
+        $userData = [
+            'name' => $request->owner_name,
+            'email' => $request->owner_email,
+            'password' => $request->password,
+            'role' => 'admin',
+        ];
+
+        $result = $this->authService->registerCompany($companyData, $userData);
+
+        if ($result['success']) {
+            Auth::login($result['user']);
+            return redirect()->route('chart-of-accounts.index')
+                ->with('success', 'Pendaftaran berhasil! Selamat datang di sistem akuntansi kami.');
+        }
+
+        return back()->withErrors([
+            'error' => $result['message']
+        ])->withInput();
+    }
+}

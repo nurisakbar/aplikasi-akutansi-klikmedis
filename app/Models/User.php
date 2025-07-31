@@ -25,6 +25,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'company_id',
+        'role',
     ];
 
     /**
@@ -46,4 +48,36 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Get the company that owns the user.
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the user's description for AdminLTE.
+     */
+    public function adminlte_desc()
+    {
+        return $this->role === 'admin' ? 'Administrator' : 'User';
+    }
+
+    /**
+     * Get the user's image for AdminLTE.
+     */
+    public function adminlte_image()
+    {
+        return null;
+    }
+
+    /**
+     * Get the user's profile URL for AdminLTE.
+     */
+    public function adminlte_profile_url()
+    {
+        return route('profile.edit');
+    }
 }

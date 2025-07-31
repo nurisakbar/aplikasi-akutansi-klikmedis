@@ -6,14 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('journal_entries', function (Blueprint $table) {
+        Schema::create('accountancy_journal_entries', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('journal_number')->unique()->nullable();
             $table->date('date');
             $table->string('description')->nullable();
             $table->string('reference')->nullable();
+            $table->string('attachment')->nullable();
+            $table->enum('status', ['draft', 'posted'])->default('draft');
+            $table->json('history')->nullable();
             $table->uuid('created_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -22,8 +28,11 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('journal_entries');
+        Schema::dropIfExists('accountancy_journal_entries');
     }
-}; 
+};

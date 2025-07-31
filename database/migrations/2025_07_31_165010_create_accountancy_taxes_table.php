@@ -6,25 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('accounts_payable', function (Blueprint $table) {
+        Schema::create('accountancy_taxes', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('supplier_id');
+            $table->string('type');
+            $table->string('document_number')->nullable();
             $table->date('date');
-            $table->date('due_date');
             $table->decimal('amount', 20, 2);
             $table->enum('status', ['unpaid', 'paid'])->default('unpaid');
             $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('restrict');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('accounts_payable');
+        Schema::dropIfExists('accountancy_taxes');
     }
-}; 
+};

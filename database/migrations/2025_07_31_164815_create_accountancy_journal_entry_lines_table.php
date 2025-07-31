@@ -6,9 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('journal_entry_lines', function (Blueprint $table) {
+        Schema::create('accountancy_journal_entry_lines', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('journal_entry_id');
             $table->uuid('chart_of_account_id');
@@ -18,13 +21,16 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('journal_entry_id')->references('id')->on('journal_entries')->onDelete('cascade');
-            $table->foreign('chart_of_account_id')->references('id')->on('akuntansi_chart_of_accounts')->onDelete('restrict');
+            $table->foreign('journal_entry_id')->references('id')->on('accountancy_journal_entries')->onDelete('cascade');
+            $table->foreign('chart_of_account_id')->references('id')->on('accountancy_chart_of_accounts')->onDelete('restrict');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('journal_entry_lines');
+        Schema::dropIfExists('accountancy_journal_entry_lines');
     }
 };

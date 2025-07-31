@@ -6,9 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('accounts_receivable', function (Blueprint $table) {
+        Schema::create('accountancy_accounts_receivable', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('customer_id');
             $table->date('date');
@@ -19,12 +22,15 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('restrict');
+            $table->foreign('customer_id')->references('id')->on('accountancy_customers')->onDelete('restrict');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('accounts_receivable');
+        Schema::dropIfExists('accountancy_accounts_receivable');
     }
-}; 
+};

@@ -6,9 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('accounts_payable_payments', function (Blueprint $table) {
+        Schema::create('accountancy_accounts_payable_payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('accounts_payable_id');
             $table->date('date');
@@ -17,12 +20,15 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('accounts_payable_id')->references('id')->on('accounts_payable')->onDelete('cascade');
+            $table->foreign('accounts_payable_id', 'accountancy_ap_payments_ap_id_fk')->references('id')->on('accountancy_accounts_payable')->onDelete('cascade');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('accounts_payable_payments');
+        Schema::dropIfExists('accountancy_accounts_payable_payments');
     }
-}; 
+};

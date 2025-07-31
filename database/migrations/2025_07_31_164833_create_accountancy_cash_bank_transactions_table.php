@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cash_bank_transactions', function (Blueprint $table) {
+        Schema::create('accountancy_cash_bank_transactions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->date('date');
             $table->uuid('account_id'); // relasi ke chart_of_accounts (kas/bank)
@@ -22,7 +22,9 @@ return new class extends Migration
             $table->string('reference')->nullable();
             $table->uuid('created_by')->nullable();
             $table->timestamps();
-            $table->foreign('account_id')->references('id')->on('akuntansi_chart_of_accounts')->onDelete('restrict');
+            $table->softDeletes();
+
+            $table->foreign('account_id')->references('id')->on('accountancy_chart_of_accounts')->onDelete('restrict');
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
     }
@@ -32,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cash_bank_transactions');
+        Schema::dropIfExists('accountancy_cash_bank_transactions');
     }
 };

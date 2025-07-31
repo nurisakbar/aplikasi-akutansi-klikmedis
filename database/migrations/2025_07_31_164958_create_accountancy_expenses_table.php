@@ -6,23 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        Schema::create('accounts_receivable_payments', function (Blueprint $table) {
+        Schema::create('accountancy_expenses', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('accounts_receivable_id');
+            $table->string('type');
+            $table->string('document_number')->nullable();
             $table->date('date');
             $table->decimal('amount', 20, 2);
+            $table->enum('status', ['unpaid', 'paid'])->default('unpaid');
             $table->string('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('accounts_receivable_id')->references('id')->on('accounts_receivable')->onDelete('cascade');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
-        Schema::dropIfExists('accounts_receivable_payments');
+        Schema::dropIfExists('accountancy_expenses');
     }
-}; 
+};

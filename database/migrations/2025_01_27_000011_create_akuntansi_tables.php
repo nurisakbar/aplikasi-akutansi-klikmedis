@@ -29,7 +29,7 @@ return new class extends Migration
         // Chart of Accounts
         Schema::create('akuntansi_chart_of_accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('setting_id')->index();
+            $table->uuid('company_id')->index();
             $table->string('code', 20)->index();
             $table->string('name', 100);
             $table->enum('type', ['asset', 'liability', 'equity', 'revenue', 'expense']);
@@ -48,7 +48,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->foreign('parent_id')->references('id')->on('akuntansi_chart_of_accounts')->onDelete('restrict');
-            $table->unique(['setting_id', 'code']);
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
+            $table->unique(['company_id', 'code']);
         });
 
         // Journal Entries
@@ -204,4 +205,4 @@ return new class extends Migration
         Schema::dropIfExists('akuntansi_expenses');
         Schema::dropIfExists('akuntansi_taxes');
     }
-}; 
+};

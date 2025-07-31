@@ -4,6 +4,10 @@
 
 @section('auth_header', 'Registrasi Perusahaan')
 
+@section('adminlte_css')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+@endsection
+
 @section('auth_body')
     <form action="{{ route('auth.register.post') }}" method="post" id="registerForm">
         @csrf
@@ -302,6 +306,7 @@
 @endpush
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 $(document).ready(function() {
     let currentStep = 1;

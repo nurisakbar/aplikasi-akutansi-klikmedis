@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Company;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserSeeder extends Seeder
 {
@@ -15,31 +16,37 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Get roles
+        $superadminRole = Role::where('name', 'superadmin')->first();
+        $companyAdminRole = Role::where('name', 'company-admin')->first();
+
         // Get companies
         $companies = Company::all();
 
         if ($companies->count() > 0) {
-            // Create admin users for each company
+            // Create company admin users for each company
             foreach ($companies as $company) {
-                User::create([
+                $user = User::create([
                     'name' => 'Admin ' . $company->name,
                     'email' => 'admin@' . strtolower(str_replace(' ', '', $company->name)) . '.com',
                     'password' => Hash::make('password123'),
                     'company_id' => $company->id,
-                    'role' => 'admin',
                 ]);
+                
+                $user->assignRole($companyAdminRole);
             }
         }
 
-        // Create a default admin user if no companies exist
+        // Create a default superadmin user if no companies exist
         if ($companies->count() === 0) {
-            User::create([
+            $user = User::create([
                 'name' => 'Super Admin',
                 'email' => 'admin@klikmedis.com',
                 'password' => Hash::make('password123'),
                 'company_id' => null,
-                'role' => 'admin',
             ]);
+            
+            $user->assignRole($superadminRole);
         }
     }
 }

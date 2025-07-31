@@ -19,7 +19,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('journal_entry_id')->references('id')->on('journal_entries')->onDelete('cascade');
-            $table->foreign('chart_of_account_id')->references('id')->on('chart_of_accounts')->onDelete('restrict');
+            $table->foreign('chart_of_account_id')->references('id')->on('akuntansi_chart_of_accounts')->onDelete('restrict');
         });
     }
 
@@ -27,4 +27,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('journal_entry_lines');
     }
-}; 
+};

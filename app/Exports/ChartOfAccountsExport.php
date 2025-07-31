@@ -6,12 +6,20 @@ use App\Models\ChartOfAccount;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Illuminate\Support\Facades\Auth;
 
 class ChartOfAccountsExport implements FromCollection, WithHeadings, WithMapping
 {
     public function collection()
     {
-        return ChartOfAccount::with('parent')->orderBy('code')->get();
+        if (!Auth::check() || !Auth::user()->company_id) {
+            return collect([]);
+        }
+        
+        return ChartOfAccount::getByCompanyId(Auth::user()->company_id)
+            ->with('parent')
+            ->orderBy('code')
+            ->get();
     }
 
     public function headings(): array

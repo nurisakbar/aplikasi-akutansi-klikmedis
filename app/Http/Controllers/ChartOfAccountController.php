@@ -13,22 +13,31 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\JsonResponse;
 use App\Exports\ChartOfAccountsExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
 
 class ChartOfAccountController extends Controller
 {
     /**
-     * Get setting ID from session.
-     * TODO: Replace with actual user's setting_id when auth is implemented
+     * Get company ID from authenticated user.
      */
-    protected function getSettingId(Request $request): string
+    protected function getCompanyId(): string|null
     {
-        $defaultSettingId = '11111111-1111-1111-1111-111111111111';
-
-        if (!$request->session()->has('setting_id')) {
-            $request->session()->put('setting_id', $defaultSettingId);
+        if (!Auth::check()) {
+            abort(401, 'User tidak terautentikasi');
         }
 
-        return $request->session()->get('setting_id');
+        $user = Auth::user();
+
+        // Superadmin bisa melihat semua data
+        if ($user->hasRole('superadmin')) {
+            return null;
+        }
+
+        if (!$user->company_id) {
+            abort(403, 'User tidak terkait dengan perusahaan manapun');
+        }
+
+        return $user->company_id;
     }
 
     /**
@@ -37,9 +46,28 @@ class ChartOfAccountController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         if ($request->ajax()) {
+            // Handle parent_only request for modal dropdown
+            if ($request->has('parent_only')) {
+                $companyId = $this->getCompanyId();
+                $query = ChartOfAccount::query();
+
+                // Filter by company_id if not superadmin
+                if ($companyId) {
+                    $query->getByCompanyId($companyId);
+                }
+
+                $accounts = $query->active()
+                    ->orderBy('code')
+                    ->get(['id', 'code', 'name']);
+
+                return response()->json(['data' => $accounts]);
+            }
+
+            \Log::info('AJAX request received for chart of accounts');
             return $this->getDataTableResponse($request);
         }
 
+        \Log::info('View request received for chart of accounts');
         return view('chart_of_accounts.index');
     }
 
@@ -48,40 +76,76 @@ class ChartOfAccountController extends Controller
      */
     private function getDataTableResponse(Request $request): JsonResponse
     {
-        $settingId = $this->getSettingId($request);
+        try {
+            $companyId = $this->getCompanyId();
 
-        $query = ChartOfAccount::getBySettingId($settingId)->with('parent');
+            // Debug logging
+            \Log::info('DataTables request', [
+                'company_id' => $companyId,
+                'user' => Auth::user()->name,
+                'user_company' => Auth::user()->company ? Auth::user()->company->name : 'Super Admin'
+            ]);
 
-        return DataTables::of($query)
-            ->addColumn('code_formatted', function (ChartOfAccount $account) {
-                return '<span class="badge badge-info">' . e($account->code) . '</span>';
-            })
-            ->addColumn('name_formatted', function (ChartOfAccount $account) {
-                $indent = '';
-                if ($account->level > 1) {
-                    $indent = '<span style="margin-left: ' . (($account->level - 1) * 20) . 'px;">└─</span>';
-                }
-                return $indent . e($account->name);
-            })
-            ->addColumn('type_formatted', function (ChartOfAccount $account) {
-                return '<span class="badge badge-' . $account->type_badge_class . '">' . ucfirst($account->type) . '</span>';
-            })
-            ->addColumn('category_formatted', function (ChartOfAccount $account) {
-                return $account->formatted_category;
-            })
-            ->addColumn('parent_formatted', function (ChartOfAccount $account) {
-                return $account->parent ? e($account->parent->full_name) : '-';
-            })
-            ->addColumn('status_formatted', function (ChartOfAccount $account) {
-                $badgeClass = $account->is_active ? 'success' : 'danger';
-                $status = $account->is_active ? 'Aktif' : 'Nonaktif';
-                return '<span class="badge badge-' . $badgeClass . '">' . $status . '</span>';
-            })
-            ->addColumn('actions', function (ChartOfAccount $account) {
-                return view('chart_of_accounts.partials.actions', compact('account'))->render();
-            })
-            ->rawColumns(['code_formatted', 'name_formatted', 'type_formatted', 'status_formatted', 'actions'])
-            ->make(true);
+            $query = ChartOfAccount::query();
+
+            // Filter by company_id if not superadmin
+            if ($companyId) {
+                $query->getByCompanyId($companyId);
+            }
+
+            $query->with('parent');
+
+            // Debug: check query count
+            $count = $query->count();
+            \Log::info('Query count', ['count' => $count]);
+
+            $datatable = DataTables::of($query)
+                ->addColumn('code_formatted', function (ChartOfAccount $account) {
+                    return '<span class="badge badge-info">' . e($account->code) . '</span>';
+                })
+                ->addColumn('name_formatted', function (ChartOfAccount $account) {
+                    $indent = '';
+                    if ($account->level > 1) {
+                        $indent = '<span style="margin-left: ' . (($account->level - 1) * 20) . 'px;">└─</span>';
+                    }
+                    return $indent . e($account->name);
+                })
+                ->addColumn('type_formatted', function (ChartOfAccount $account) {
+                    return '<span class="badge badge-' . $account->type_badge_class . '">' . ucfirst($account->type) . '</span>';
+                })
+                ->addColumn('category_formatted', function (ChartOfAccount $account) {
+                    return $account->formatted_category;
+                })
+                ->addColumn('parent_formatted', function (ChartOfAccount $account) {
+                    return $account->parent ? e($account->parent->full_name) : '-';
+                })
+                ->addColumn('status_formatted', function (ChartOfAccount $account) {
+                    $badgeClass = $account->is_active ? 'success' : 'danger';
+                    $status = $account->is_active ? 'Aktif' : 'Nonaktif';
+                    return '<span class="badge badge-' . $badgeClass . '">' . $status . '</span>';
+                })
+                ->addColumn('actions', function (ChartOfAccount $account) {
+                    return view('chart_of_accounts.partials.actions', compact('account'))->render();
+                })
+                ->rawColumns(['code_formatted', 'name_formatted', 'type_formatted', 'status_formatted', 'actions'])
+                ->make(true);
+
+            \Log::info('DataTables response created successfully');
+            return $datatable;
+
+        } catch (\Exception $e) {
+            \Log::error('DataTables error', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat memuat data',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -89,8 +153,8 @@ class ChartOfAccountController extends Controller
      */
     public function create(Request $request): View
     {
-        $settingId = $this->getSettingId($request);
-        $parentAccounts = ChartOfAccount::getBySettingId($settingId)
+        $companyId = $this->getCompanyId();
+        $parentAccounts = ChartOfAccount::getByCompanyId($companyId)
             ->active()
             ->orderBy('code')
             ->get();
@@ -101,22 +165,73 @@ class ChartOfAccountController extends Controller
     /**
      * Store a newly created chart of account.
      */
-    public function store(StoreChartOfAccountRequest $request): RedirectResponse
+    public function store(StoreChartOfAccountRequest $request): RedirectResponse|JsonResponse
     {
-        $validated = $request->validated();
-        $validated['id'] = (string) Str::uuid();
-        $validated['setting_id'] = $this->getSettingId($request);
-        $validated['is_active'] = $request->boolean('is_active', true);
+        try {
+            \Log::info('Store COA request received', [
+                'data' => $request->all(),
+                'user' => Auth::user()->email,
+                'company_id' => $this->getCompanyId()
+            ]);
 
-        $account = ChartOfAccount::create($validated);
+            $validated = $request->validated();
+            $validated['id'] = (string) Str::uuid();
 
-        if (!$account->isRoot()) {
-            $account->updatePath();
+            // Handle company_id based on user role
+            $user = Auth::user();
+            if ($user->hasRole('superadmin')) {
+                // For superadmin, create or get a special company for global COA
+                $globalCompany = \App\Models\Company::firstOrCreate(
+                    ['name' => 'Global System'],
+                    [
+                        'id' => (string) \Illuminate\Support\Str::uuid(),
+                        'email' => 'system@global.com',
+                        'name' => 'Global System'
+                    ]
+                );
+                $validated['company_id'] = $globalCompany->id;
+            } else {
+                $validated['company_id'] = $this->getCompanyId();
+            }
+
+            $validated['is_active'] = $request->boolean('is_active', true);
+
+            \Log::info('Validated data', $validated);
+
+            $account = ChartOfAccount::create($validated);
+
+            if (!$account->isRoot()) {
+                $account->updatePath();
+            }
+
+            \Log::info('COA created successfully', ['id' => $account->id]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Akun berhasil ditambahkan.',
+                    'data' => $account
+                ]);
+            }
+
+            return redirect()
+                ->route('chart-of-accounts.index')
+                ->with('success', 'Akun berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            \Log::error('Error creating COA', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
-
-        return redirect()
-            ->route('chart-of-accounts.index')
-            ->with('success', 'Akun berhasil ditambahkan.');
     }
 
     /**
@@ -131,12 +246,16 @@ class ChartOfAccountController extends Controller
     /**
      * Show the form for editing the specified chart of account.
      */
-    public function edit(Request $request, string $id): View
+    public function edit(Request $request, string $id): View|JsonResponse
     {
-        $settingId = $this->getSettingId($request);
+        $companyId = $this->getCompanyId();
         $account = $this->findAccountOrFail($request, $id);
 
-        $parentAccounts = ChartOfAccount::getBySettingId($settingId)
+        if ($request->ajax()) {
+            return response()->json($account);
+        }
+
+        $parentAccounts = ChartOfAccount::getByCompanyId($companyId)
             ->where('id', '!=', $id)
             ->active()
             ->orderBy('code')
@@ -148,20 +267,39 @@ class ChartOfAccountController extends Controller
     /**
      * Update the specified chart of account.
      */
-    public function update(UpdateChartOfAccountRequest $request, ChartOfAccount $chart_of_account): RedirectResponse
+    public function update(UpdateChartOfAccountRequest $request, ChartOfAccount $chart_of_account): RedirectResponse|JsonResponse
     {
-        $validated = $request->validated();
-        $validated['is_active'] = $request->boolean('is_active', true);
+        try {
+            $validated = $request->validated();
+            $validated['is_active'] = $request->boolean('is_active', true);
 
-        $chart_of_account->update($validated);
+            $chart_of_account->update($validated);
 
-        if ($chart_of_account->wasChanged('parent_id')) {
-            $chart_of_account->updatePath();
+            if ($chart_of_account->wasChanged('parent_id')) {
+                $chart_of_account->updatePath();
+            }
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Akun berhasil diupdate.',
+                    'data' => $chart_of_account
+                ]);
+            }
+
+            return redirect()
+                ->route('chart-of-accounts.index')
+                ->with('success', 'Akun berhasil diupdate.');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
-
-        return redirect()
-            ->route('chart-of-accounts.index')
-            ->with('success', 'Akun berhasil diupdate.');
     }
 
     /**
@@ -200,14 +338,14 @@ class ChartOfAccountController extends Controller
     }
 
     /**
-     * Find chart of account by ID and setting ID.
+     * Find chart of account by ID and company ID.
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
     private function findAccountOrFail(Request $request, string $id): ChartOfAccount
     {
-        $settingId = $this->getSettingId($request);
-        return ChartOfAccount::getBySettingId($settingId)
+        $companyId = $this->getCompanyId();
+        return ChartOfAccount::getByCompanyId($companyId)
             ->where('id', $id)
             ->firstOrFail();
     }

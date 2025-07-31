@@ -4,72 +4,91 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\ChartOfAccount;
+use App\Models\Company;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 
 class ChartOfAccountSeeder extends Seeder
 {
-    private $settingId;
+    private $companyId;
     private $accounts = [];
     private $batchSize = 10;
 
     public function run(): void
     {
-        $this->settingId = '11111111-1111-1111-1111-111111111111';
-        
-        // Cek apakah data sudah ada
-        if (ChartOfAccount::where('setting_id', $this->settingId)->count() > 0) {
-            $this->command->info('Data Chart of Accounts sudah ada. Skipping seeder.');
+        // Ambil semua company yang ada
+        $companies = Company::all();
+        if ($companies->isEmpty()) {
+            $this->command->error('Tidak ada company yang ditemukan. Jalankan CompanySeeder terlebih dahulu.');
             return;
         }
-        
-        $this->command->info('Creating Chart of Accounts...');
 
-        // Generate root accounts
-        $this->generateRootAccounts();
-        
-        // Generate child accounts in batches
-        $this->generateAssetAccounts();
-        $this->generateLiabilityAccounts();
-        $this->generateEquityAccounts();
-        $this->generateRevenueAccounts();
-        $this->generateExpenseAccounts();
+        $this->command->info('Found ' . $companies->count() . ' companies. Creating Chart of Accounts for each...');
 
-        // Insert remaining accounts
-        if (!empty($this->accounts)) {
-            DB::table('akuntansi_chart_of_accounts')->insert($this->accounts);
+        foreach ($companies as $company) {
+            $this->companyId = $company->id;
+
+            // Cek apakah data sudah ada untuk company ini
+            $existingCount = ChartOfAccount::where('company_id', $this->companyId)->count();
+            if ($existingCount > 0) {
+                $this->command->info('Data Chart of Accounts untuk ' . $company->name . ' sudah ada (' . $existingCount . ' records). Skipping...');
+                continue;
+            }
+
+            $this->command->info('Creating Chart of Accounts for company: ' . $company->name);
+
+            // Reset accounts array untuk company baru
+            $this->accounts = [];
+
+            // Generate root accounts
+            $this->generateRootAccounts();
+
+            // Generate child accounts in batches
+            $this->generateAssetAccounts();
+            $this->generateLiabilityAccounts();
+            $this->generateEquityAccounts();
+            $this->generateRevenueAccounts();
+            $this->generateExpenseAccounts();
+
+            // Insert remaining accounts
+            if (!empty($this->accounts)) {
+                DB::table('akuntansi_chart_of_accounts')->insert($this->accounts);
+                $this->accounts = [];
+            }
+
+            $this->command->info('Chart of Accounts for ' . $company->name . ' created successfully!');
+
+            // Update paths
+            $this->command->info('Updating account paths for ' . $company->name . '...');
+            ChartOfAccount::where('company_id', $this->companyId)
+                ->whereNotNull('parent_id')
+                ->chunk(100, function($accounts) {
+                    foreach($accounts as $account) {
+                        $account->updatePath();
+                    }
+                });
+
+            $this->command->info('All paths updated successfully for ' . $company->name . '!');
         }
 
-        $this->command->info('Chart of Accounts created successfully!');
-        
-        // Update paths
-        $this->command->info('Updating account paths...');
-        ChartOfAccount::where('setting_id', $this->settingId)
-            ->whereNotNull('parent_id')
-            ->chunk(100, function($accounts) {
-                foreach($accounts as $account) {
-                    $account->updatePath();
-                }
-            });
-        
-        $this->command->info('All paths updated successfully!');
+        $this->command->info('Chart of Accounts creation completed for all companies!');
     }
 
     private function addAccount($data)
     {
         $data['id'] = (string) Str::uuid();
-        $data['setting_id'] = $this->settingId;
+        $data['company_id'] = $this->companyId;
         $data['created_at'] = now();
         $data['updated_at'] = now();
-        
+
         $this->accounts[] = $data;
-        
+
         // Batch insert when reaching batch size
         if (count($this->accounts) >= $this->batchSize) {
             DB::table('akuntansi_chart_of_accounts')->insert($this->accounts);
             $this->accounts = [];
         }
-        
+
         return $data['id'];
     }
 
@@ -145,7 +164,7 @@ class ChartOfAccountSeeder extends Seeder
 
     private function generateAssetAccounts()
     {
-        $assetId = ChartOfAccount::where('setting_id', $this->settingId)
+        $assetId = ChartOfAccount::where('company_id', $this->companyId)
             ->where('code', '1000')
             ->value('id');
 
@@ -300,7 +319,7 @@ class ChartOfAccountSeeder extends Seeder
 
     private function generateLiabilityAccounts()
     {
-        $liabilityId = ChartOfAccount::where('setting_id', $this->settingId)
+        $liabilityId = ChartOfAccount::where('company_id', $this->companyId)
             ->where('code', '3000')
             ->value('id');
 
@@ -372,7 +391,7 @@ class ChartOfAccountSeeder extends Seeder
 
     private function generateEquityAccounts()
     {
-        $equityId = ChartOfAccount::where('setting_id', $this->settingId)
+        $equityId = ChartOfAccount::where('company_id', $this->companyId)
             ->where('code', '4000')
             ->value('id');
 
@@ -398,7 +417,7 @@ class ChartOfAccountSeeder extends Seeder
 
     private function generateRevenueAccounts()
     {
-        $revenueId = ChartOfAccount::where('setting_id', $this->settingId)
+        $revenueId = ChartOfAccount::where('company_id', $this->companyId)
             ->where('code', '5000')
             ->value('id');
 
@@ -425,7 +444,7 @@ class ChartOfAccountSeeder extends Seeder
 
     private function generateExpenseAccounts()
     {
-        $expenseId = ChartOfAccount::where('setting_id', $this->settingId)
+        $expenseId = ChartOfAccount::where('company_id', $this->companyId)
             ->where('code', '6000')
             ->value('id');
 

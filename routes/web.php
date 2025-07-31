@@ -59,10 +59,19 @@ Route::post('logout', [App\Http\Controllers\Auth\LogoutController::class, 'logou
 | Routes yang memerlukan autentikasi dan terkait dengan data akuntansi
 */
 
-Route::middleware(['auth', 'has.company'])->group(function () {
+// Routes untuk semua user (termasuk superadmin)
+Route::middleware(['auth'])->group(function () {
     // Profile routes
     Route::get('profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
+    // Chart of Accounts - accessible by all authenticated users
+    Route::get('chart-of-accounts/export', [ChartOfAccountController::class, 'export'])->name('chart-of-accounts.export');
+    Route::resource('chart-of-accounts', ChartOfAccountController::class);
+});
+
+// Routes yang memerlukan company (exclude superadmin)
+Route::middleware(['auth', 'has.company'])->group(function () {
     /*
     |--------------------------------------------------------------------------
     | DATA MASTER ROUTES
@@ -70,10 +79,6 @@ Route::middleware(['auth', 'has.company'])->group(function () {
     | Routes untuk data master/referensi yang relatif statis dan digunakan
     | sebagai referensi oleh data transaksional lainnya
     */
-
-// Master Data - Chart of Accounts (Bagan Akun)
-Route::get('chart-of-accounts/export', [ChartOfAccountController::class, 'export'])->name('chart-of-accounts.export');
-Route::resource('chart-of-accounts', ChartOfAccountController::class);
 
 // Master Data - Fixed Assets (Aset Tetap)
 Route::get('fixed-assets/export', [FixedAssetController::class, 'export'])->name('fixed-assets.export');
@@ -155,3 +160,7 @@ Route::get('balance-sheet/export', [App\Http\Controllers\BalanceSheetController:
 Route::get('profit-loss', [App\Http\Controllers\ProfitLossController::class, 'index'])->name('profit-loss.index');
 Route::get('profit-loss/export', [App\Http\Controllers\ProfitLossController::class, 'export'])->name('profit-loss.export');
 });
+
+
+
+

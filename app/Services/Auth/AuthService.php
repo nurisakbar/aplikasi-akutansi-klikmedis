@@ -6,6 +6,7 @@ use App\Repositories\Auth\AuthRepositoryInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use Spatie\Permission\Models\Role;
 
 class AuthService implements AuthServiceInterface
 {
@@ -27,6 +28,12 @@ class AuthService implements AuthServiceInterface
             // Create user with company_id
             $userData['company_id'] = $company->id;
             $user = $this->authRepository->createUser($userData);
+
+            // Assign company-admin role
+            $companyAdminRole = Role::where('name', 'company-admin')->first();
+            if ($companyAdminRole) {
+                $user->assignRole($companyAdminRole);
+            }
 
             DB::commit();
 

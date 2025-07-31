@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateChartOfAccountRequest extends FormRequest
 {
@@ -14,19 +15,38 @@ class UpdateChartOfAccountRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'code' => [
-                'required',
-                'string',
-                'max:20',
-                Rule::unique('akuntansi_chart_of_accounts', 'code')->ignore($this->route('chart_of_account')),
-            ],
+        $companyId = Auth::user()->company_id;
+
+        $rules = [
             'name' => 'required|string|max:100',
             'type' => 'required|in:asset,liability,equity,revenue,expense',
             'category' => 'required|in:current_asset,fixed_asset,other_asset,current_liability,long_term_liability,equity,operating_revenue,other_revenue,operating_expense,other_expense',
-            'parent_id' => 'nullable|uuid|exists:akuntansi_chart_of_accounts,id',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ];
+
+        // Add unique constraint only if user has company_id
+        if ($companyId) {
+            $rules['code'] = [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('akuntansi_chart_of_accounts', 'code')
+                    ->ignore($this->route('chart_of_account'))
+                    ->where('company_id', $companyId),
+            ];
+            $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id,company_id,' . $companyId;
+        } else {
+            $rules['code'] = [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('akuntansi_chart_of_accounts', 'code')
+                    ->ignore($this->route('chart_of_account')),
+            ];
+            $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id';
+        }
+
+        return $rules;
     }
 }

@@ -1,223 +1,215 @@
-# Rencana Implementasi Modul Akuntansi di Laravel
+# Aplikasi Akuntansi KlikMedis
 
-Dokumen ini merangkum rencana implementasi fitur-fitur akuntansi utama yang terinspirasi dari Zoho Books, untuk aplikasi Laravel.
+Aplikasi sistem akuntansi berbasis Laravel dengan fitur multi-tenant dan role-based access control.
 
-## Checklist Modul Akuntansi
+## Fitur Utama
 
-- [x] Chart of Accounts (Daftar Akun)
-- [x] Journal Entries (Jurnal Umum)
-- [x] Trial Balance (Neraca Saldo)
-- [x] Balance Sheet (Neraca)
-- [x] Profit and Loss Statement (Laporan Laba Rugi)
-- [x] Cash/Bank Management (Manajemen Kas & Bank)
-- [x] Accounts Receivable (Piutang Usaha)
-- [x] Accounts Payable (Hutang Usaha)
-- [x] Fixed Assets (Aset Tetap)
-- [x] Tax Management (Manajemen Pajak)
-- [x] Expense Management (Manajemen Beban)
-- [ ] Inventory (Persediaan) _(opsional)_
+### 1. User & Company Registration
+- **Registrasi Otomatis**: Saat user mendaftar, otomatis membuat 1 company
+- **UUID Support**: User dan company menggunakan UUID sebagai primary key
+- **Role Assignment**: User otomatis diberikan role `company-admin` menggunakan Spatie Laravel Permission
+- **Form Fields**: name, email, password, company_name
+- **Relasi**: User dan company terhubung via `users.company_id`
 
-## Daftar Modul Akuntansi
+### 2. Login dengan Role-based Access
+- **Spatie Laravel Permission**: Menggunakan package untuk manajemen role dan permission
+- **Roles Available**:
+  - `superadmin`: Bisa melihat semua data dari semua company
+  - `company-admin`: Hanya bisa melihat data milik `company_id`-nya
+- **Middleware**: `CheckRole` untuk validasi role
+- **Company Validation**: `EnsureUserHasCompany` untuk memastikan user memiliki company (kecuali superadmin)
 
-1. **Chart of Accounts (Daftar Akun)**
-   - CRUD akun (aset, kewajiban, ekuitas, pendapatan, beban)
-   - Kategori akun dan kode akun
+### 3. CRUD Chart of Accounts (COA)
+- **Tabel**: `akuntansi_chart_of_accounts`
+- **Fields**: id, company_id, code, name, type, category, parent_id, description, is_active, level, path
+- **AJAX Support**: Create/edit/delete menggunakan jQuery AJAX
+- **AdminLTE Template**: Interface menggunakan AdminLTE
+- **DataTables**: Tampilan data menggunakan DataTables
+- **Modal Forms**: Form tambah/edit menggunakan Bootstrap modal
+- **Company Filtering**: Query dibatasi ke `company_id = auth()->user()->company_id`
 
-2. **Journal Entries (Jurnal Umum)**
-   - Input manual transaksi jurnal
-   - Otomatisasi jurnal dari modul lain
-   - Validasi keseimbangan debit dan kredit
+## Struktur Database
 
-3. **General Ledger (Buku Besar)**
-   - Laporan transaksi per akun
-   - Filter berdasarkan periode dan akun
+### Tabel Utama
+- `companies`: Data perusahaan
+- `users`: Data user dengan relasi ke company
+- `akuntansi_chart_of_accounts`: Chart of accounts dengan hierarki
+- `roles`, `permissions`, `model_has_roles`, `model_has_permissions`: Tabel Spatie Permission
 
-4. **Trial Balance (Neraca Saldo)**
-   - Laporan saldo akhir semua akun
-   - Validasi keseimbangan total debit dan kredit
+### Relasi
+- User belongs to Company
+- Company has many Users
+- Company has many ChartOfAccounts
+- ChartOfAccount belongs to Company
+- ChartOfAccount belongs to Parent (self-referencing)
 
-5. **Balance Sheet (Neraca)**
-   - Laporan posisi keuangan (aset, kewajiban, ekuitas)
-   - Periode tertentu
+## Instalasi
 
-6. **Profit and Loss Statement (Laporan Laba Rugi)**
-   - Laporan pendapatan dan beban
-   - Perhitungan laba/rugi bersih
+### Prerequisites
+- PHP 8.1+
+- Composer
+- MySQL/MariaDB
+- Node.js & NPM
 
-7. **Cash/Bank Management (Manajemen Kas & Bank)**
-   - Pencatatan transaksi kas dan bank
-   - Rekonsiliasi bank
-
-8. **Accounts Receivable (Piutang Usaha)**
-   - Pembuatan dan pengelolaan invoice
-   - Pencatatan pembayaran dari pelanggan
-   - Laporan umur piutang
-
-9. **Accounts Payable (Hutang Usaha)**
-   - Pencatatan tagihan/bills dari vendor
-   - Pencatatan pembayaran ke vendor
-   - Laporan umur hutang
-
-10. **Fixed Assets (Aset Tetap)**
-    - Pencatatan aset tetap
-    - Perhitungan dan jurnal penyusutan
-    - Laporan aset
-
-11. **Tax Management (Manajemen Pajak)**
-    - Pengaturan jenis pajak (PPN, PPh, dll)
-    - Pencatatan pajak keluaran dan masukan
-    - Laporan pajak
-
-12. **Expense Management (Manajemen Beban)**
-    - Pencatatan pengeluaran operasional
-    - Kategori beban
-    - Lampiran bukti pengeluaran
-
-13. **Inventory (Persediaan)** _(opsional)_
-    - Pencatatan barang masuk/keluar
-    - Penyesuaian stok
-    - Laporan nilai persediaan
-
-## Fitur Pendukung
-- Rekonsiliasi bank
-- Multi-currency (opsional)
-- Reporting & Analytics
-- Hak akses pengguna (role-based)
-
-## Rencana Implementasi
-1. **Analisis kebutuhan dan desain database**
-2. **Pembuatan model dan migrasi database untuk setiap modul**
-3. **Pembuatan controller, service, dan repository**
-4. **Pembuatan halaman CRUD dan laporan (Blade/Livewire/Vue)**
-5. **Integrasi antar modul (otomatisasi jurnal, dsb.)**
-6. **Testing dan validasi**
-7. **Dokumentasi penggunaan**
-
-## Catatan
-- Setiap modul akan dibuat terpisah dan dapat diintegrasikan secara bertahap.
-- Standar akuntansi yang digunakan dapat disesuaikan dengan kebutuhan bisnis.
-- Fitur dapat dikembangkan lebih lanjut sesuai kebutuhan pengguna.
-
-## Standar Coding Project
-
-Agar pengembangan konsisten dan maintainable, project ini menggunakan standar berikut:
-
-### 1. Form Request Validation
-- Semua validasi input dilakukan di Form Request (misal: `StoreChartOfAccountRequest`, `StoreJournalEntryRequest`).
-- Controller hanya menerima data yang sudah tervalidasi.
-
-### 2. Repository Pattern
-- Setiap model utama memiliki Repository dan Interface (misal: `ChartOfAccountRepository`, `JournalEntryRepository`).
-- Controller dan Service menggunakan dependency injection ke interface, bukan langsung ke model.
-- Binding repository dilakukan di `app/Providers/RepositoryServiceProvider.php`.
-
-### 3. Service Layer
-- Business logic (misal: transaksi database, pengecekan balance, update relasi) ditempatkan di Service (misal: `ChartOfAccountService`, `JournalEntryService`).
-- Controller hanya memanggil Service, tidak menulis business logic langsung.
-
-### 4. Controller
-- Controller hanya menangani request/response, validasi, dan pemanggilan Service/Repository.
-- Tidak ada query atau business logic langsung di controller.
-
-### 5. Resource/Collection (Opsional)
-- Untuk API/JSON response gunakan Resource agar response konsisten.
-
-### 6. Struktur Folder
-- `app/Http/Requests` : Form Request
-- `app/Repositories` : Repository & Interface
-- `app/Services` : Service Layer
-- `app/Http/Controllers` : Controller
-- `app/Models` : Model Eloquent
-
-### 7. Lain-lain
-- Semua proses create/update yang kompleks harus dalam DB Transaction.
-- Validasi bisnis (misal: jurnal harus balance) dilakukan di Service.
-- Untuk penghapusan, response AJAX harus JSON (success/message).
-
-Dengan standar ini, project mudah di-maintain, scalable, dan siap untuk pengembangan tim.
-
-## Contoh Coding Standar
-
-### 1. Form Request (Validasi)
-```php
-// app/Http/Requests/StoreJournalEntryRequest.php
-class StoreJournalEntryRequest extends FormRequest {
-    public function rules(): array {
-        return [
-            'date' => 'required|date',
-            'lines' => 'required|array|min:2',
-            'lines.*.debit' => 'required|numeric|min:0',
-            'lines.*.credit' => 'required|numeric|min:0',
-        ];
-    }
-}
+### Setup
+1. Clone repository
+```bash
+git clone <repository-url>
+cd aplikasi-akutansi-klikmedis
 ```
 
-### 2. Repository & Interface
-```php
-// app/Repositories/Interfaces/JournalEntryRepositoryInterface.php
-interface JournalEntryRepositoryInterface {
-    public function all(): Collection;
-    public function find(string $id): ?JournalEntry;
-    public function create(array $data): JournalEntry;
-}
-
-// app/Repositories/JournalEntryRepository.php
-class JournalEntryRepository implements JournalEntryRepositoryInterface {
-    public function all(): Collection {
-        return JournalEntry::all();
-    }
-    public function create(array $data): JournalEntry {
-        return JournalEntry::create($data);
-    }
-}
+2. Install dependencies
+```bash
+composer install
+npm install
 ```
 
-### 3. Service Layer
-```php
-// app/Services/JournalEntryService.php
-class JournalEntryService {
-    protected $repository;
-    public function __construct(JournalEntryRepositoryInterface $repository) {
-        $this->repository = $repository;
-    }
-    public function create(array $data): JournalEntry {
-        // Validasi bisnis: jurnal harus balance
-        $totalDebit = collect($data['lines'])->sum('debit');
-        $totalCredit = collect($data['lines'])->sum('credit');
-        if ($totalDebit != $totalCredit) {
-            throw new \Exception('Total debit dan kredit harus seimbang.');
-        }
-        return DB::transaction(function () use ($data) {
-            $entry = $this->repository->create($data);
-            // ... create lines ...
-            return $entry;
-        });
-    }
-}
+3. Setup environment
+```bash
+cp .env.example .env
+php artisan key:generate
 ```
 
-### 4. Controller
-```php
-// app/Http/Controllers/JournalEntryController.php
-class JournalEntryController extends Controller {
-    protected $service;
-    public function __construct(JournalEntryService $service) {
-        $this->service = $service;
-    }
-    public function store(StoreJournalEntryRequest $request) {
-        try {
-            $this->service->create($request->validated());
-            return redirect()->route('journal-entries.index')->with('success', 'Jurnal berhasil disimpan.');
-        } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['lines' => $e->getMessage()]);
-        }
-    }
-}
+4. Configure database di `.env`
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=akuntansi_klikmedis
+DB_USERNAME=root
+DB_PASSWORD=
 ```
 
-Dengan pola ini, kode lebih rapi, mudah di-maintain, dan scalable untuk tim.
+5. Run migrations dan seeders
+```bash
+php artisan migrate:fresh --seed
+php artisan db:seed --class=SuperAdminSeeder
+```
 
----
+6. Build assets
+```bash
+npm run build
+```
 
-**Dokumen ini akan diperbarui seiring perkembangan implementasi.**
+7. Start server
+```bash
+php artisan serve
+```
+
+## Default Users
+
+### Super Admin
+- Email: `superadmin@klikmedis.com`
+- Password: `password123`
+- Role: `superadmin`
+- Company: `null` (bisa akses semua data)
+
+### Company Admin (untuk setiap company)
+- Email: `admin@[companyname].com`
+- Password: `password123`
+- Role: `company-admin`
+- Company: Sesuai dengan company yang dibuat
+
+## API Endpoints
+
+### Authentication
+- `GET /auth/login` - Login form
+- `POST /auth/login` - Login process
+- `GET /auth/register` - Register form
+- `POST /auth/register` - Register process
+- `POST /auth/logout` - Logout
+
+### Chart of Accounts
+- `GET /chart-of-accounts` - Index (DataTables)
+- `POST /chart-of-accounts` - Store (AJAX)
+- `GET /chart-of-accounts/{id}/edit` - Edit form (AJAX)
+- `PUT /chart-of-accounts/{id}` - Update (AJAX)
+- `DELETE /chart-of-accounts/{id}` - Delete (AJAX)
+- `GET /chart-of-accounts/export` - Export Excel
+
+## Middleware
+
+### CheckRole
+Validasi role user untuk akses tertentu
+```php
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    // Routes untuk superadmin
+});
+```
+
+### EnsureUserHasCompany
+Memastikan user memiliki company (kecuali superadmin)
+```php
+Route::middleware(['auth', 'has.company'])->group(function () {
+    // Routes yang memerlukan company
+});
+```
+
+## Validation Rules
+
+### Chart of Accounts
+- `code`: Required, unique per company, max 20 chars
+- `name`: Required, max 100 chars
+- `type`: Required, enum (asset, liability, equity, revenue, expense)
+- `category`: Required, enum sesuai type
+- `parent_id`: Optional, UUID, exists in same company
+- `description`: Optional, text
+- `is_active`: Boolean
+
+## Frontend Features
+
+### AJAX Implementation
+- Modal forms untuk create/edit
+- SweetAlert untuk konfirmasi dan notifikasi
+- DataTables untuk tampilan data
+- Dynamic category dropdown berdasarkan type
+- Parent account dropdown
+
+### JavaScript Functions
+- `loadParentAccounts()`: Load parent accounts untuk dropdown
+- `updateCategories()`: Update kategori berdasarkan tipe akun
+- `loadAccountData()`: Load data akun untuk edit
+- `saveAccount()`: Save/update akun via AJAX
+- `deleteAccountAjax()`: Delete akun via AJAX
+
+## Security Features
+
+### Role-based Access Control
+- Superadmin: Akses penuh ke semua data
+- Company-admin: Akses terbatas ke data company-nya
+- Permission-based: Granular permissions untuk setiap action
+
+### Data Isolation
+- Company-based filtering untuk semua queries
+- UUID untuk primary keys
+- Soft deletes untuk data preservation
+
+### Validation
+- Server-side validation dengan custom messages
+- Client-side validation dengan Bootstrap
+- CSRF protection untuk semua forms
+
+## Troubleshooting
+
+### Common Issues
+1. **Permission denied**: Pastikan user memiliki role yang sesuai
+2. **Company not found**: Pastikan user terhubung dengan company
+3. **UUID errors**: Pastikan migration berjalan dengan benar
+4. **AJAX errors**: Check browser console dan Laravel logs
+
+### Logs
+- Laravel logs: `storage/logs/laravel.log`
+- DataTables logs: Check browser console
+- AJAX errors: Check network tab di browser
+
+## Contributing
+
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
+
+## License
+
+This project is licensed under the MIT License.

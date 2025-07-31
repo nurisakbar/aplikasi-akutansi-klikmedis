@@ -41,26 +41,22 @@ class RegisterRequest extends FormRequest
     }
 
     /**
-     * Prepare the data for validation.
+     * Get custom messages for validator errors.
      */
-    protected function prepareForValidation()
+    public function messages(): array
     {
-        // Transform form field names to database column names
-        $this->merge([
-            // Company data mapping
-            'name' => $this->company_name,
-            'address' => $this->company_address,
-            'province' => $this->company_province,
-            'city' => $this->company_city,
-            'district' => $this->company_district,
-            'postal_code' => $this->company_postal_code,
-            'email' => $this->company_email,
-            'phone' => $this->company_phone,
-            'website' => $this->company_website,
-
-            // User data mapping
-            'user_name' => $this->owner_name,
-            'user_email' => $this->owner_email,
-        ]);
+        return [
+            'company_name.required' => 'Nama perusahaan wajib diisi.',
+            'company_email.required' => 'Email perusahaan wajib diisi.',
+            'company_email.email' => 'Format email perusahaan tidak valid.',
+            'company_email.unique' => 'Email perusahaan sudah terdaftar.',
+            'owner_name.required' => 'Nama pemilik wajib diisi.',
+            'owner_email.required' => 'Email pemilik wajib diisi.',
+            'owner_email.email' => 'Format email pemilik tidak valid.',
+            'owner_email.unique' => 'Email pemilik sudah terdaftar.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ];
     }
 }

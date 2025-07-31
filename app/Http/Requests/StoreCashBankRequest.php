@@ -14,7 +14,7 @@ class StoreCashBankRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'account_id' => 'required|uuid|exists:chart_of_accounts,id',
+            'account_id' => 'required|uuid|exists:akuntansi_chart_of_accounts,id',
             'date' => 'required|date',
             'type' => 'required|in:in,out,transfer',
             'amount' => 'required|numeric|min:1',
@@ -23,4 +23,4 @@ class StoreCashBankRequest extends FormRequest
             'bukti' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
     }
-} 
+}

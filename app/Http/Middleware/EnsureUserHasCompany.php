@@ -16,10 +16,20 @@ class EnsureUserHasCompany
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && !Auth::user()->company_id) {
-            Auth::logout();
-            return redirect()->route('auth.login')
-                ->with('error', 'Akun Anda tidak terkait dengan perusahaan manapun. Silakan hubungi administrator.');
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            // Superadmin tidak perlu company_id
+            if ($user->hasRole('superadmin')) {
+                return $next($request);
+            }
+
+            // User lain harus memiliki company_id
+            if (!$user->company_id) {
+                Auth::logout();
+                return redirect()->route('auth.login')
+                    ->with('error', 'Akun Anda tidak terkait dengan perusahaan manapun. Silakan hubungi administrator.');
+            }
         }
 
         return $next($request);

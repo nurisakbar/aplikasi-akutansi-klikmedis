@@ -24,7 +24,7 @@ class LoginController extends Controller
     public function showLoginForm()
     {
         if (Auth::check()) {
-            return redirect()->route('chart-of-accounts.index');
+            return $this->redirectBasedOnRole();
         }
         return view('auth.login');
     }
@@ -42,7 +42,7 @@ class LoginController extends Controller
                     return response()->json([
                         'success' => true,
                         'message' => $result['message'] ?? 'Login berhasil',
-                        'redirect' => route('chart-of-accounts.index')
+                        'redirect' => $this->getRedirectUrl()
                     ]);
                 } else {
                     return response()->json([
@@ -56,7 +56,7 @@ class LoginController extends Controller
             $result = $this->authService->login($request->only(['email', 'password']));
 
             if ($result['success']) {
-                return redirect()->intended(route('chart-of-accounts.index'))
+                return redirect()->intended($this->getRedirectUrl())
                     ->with('success', $result['message'] ?? 'Login berhasil');
             }
 
@@ -84,5 +84,33 @@ class LoginController extends Controller
                 'email' => 'Terjadi kesalahan saat login: ' . $e->getMessage()
             ])->withInput($request->only('email'));
         }
+    }
+
+    /**
+     * Redirect based on user role
+     */
+    private function redirectBasedOnRole()
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('superadmin')) {
+            return redirect()->route('chart-of-accounts.index');
+        }
+
+        return redirect()->route('chart-of-accounts.index');
+    }
+
+    /**
+     * Get redirect URL based on user role
+     */
+    private function getRedirectUrl()
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('superadmin')) {
+            return route('chart-of-accounts.index');
+        }
+
+        return route('chart-of-accounts.index');
     }
 }

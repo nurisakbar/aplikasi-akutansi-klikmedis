@@ -14,11 +14,11 @@ class CashBankFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'account_id' => 'nullable|uuid|exists:chart_of_accounts,id',
+            'account_id' => 'nullable|uuid|exists:akuntansi_chart_of_accounts,id',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
             'type' => 'nullable|in:in,out,transfer',
             'status' => 'nullable|in:draft,posted',
         ];
     }
-} 
+}

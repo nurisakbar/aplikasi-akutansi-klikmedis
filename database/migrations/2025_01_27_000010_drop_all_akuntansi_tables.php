@@ -10,7 +10,7 @@ return new class extends Migration
         // Drop all old tables (tanpa prefix)
         Schema::dropIfExists('customers');
         Schema::dropIfExists('suppliers');
-        Schema::dropIfExists('chart_of_accounts');
+        // Schema::dropIfExists('chart_of_accounts'); // Already dropped by akuntansi_chart_of_accounts
         Schema::dropIfExists('journal_entries');
         Schema::dropIfExists('journal_entry_lines');
         Schema::dropIfExists('cash_bank_transactions');
@@ -42,4 +42,4 @@ return new class extends Migration
     {
         // Tidak perlu implementasi down, karena ini hanya untuk drop table
     }
-}; 
+};

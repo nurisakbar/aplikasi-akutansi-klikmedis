@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('reference')->nullable();
             $table->uuid('created_by')->nullable();
             $table->timestamps();
-            $table->foreign('account_id')->references('id')->on('chart_of_accounts')->onDelete('restrict');
+            $table->foreign('account_id')->references('id')->on('akuntansi_chart_of_accounts')->onDelete('restrict');
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
     }

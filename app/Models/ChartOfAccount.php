@@ -62,7 +62,7 @@ class ChartOfAccount extends Model
      */
     protected $fillable = [
         'id',
-        'setting_id',
+        'company_id',
         'code',
         'name',
         'type',
@@ -221,11 +221,19 @@ class ChartOfAccount extends Model
     }
 
     /**
-     * Get accounts by setting ID.
+     * Get accounts by company ID.
      */
-    public static function getBySettingId(string $settingId): Builder
+    public static function getByCompanyId(string $companyId): Builder
     {
-        return static::where('setting_id', $settingId);
+        return static::where('company_id', $companyId);
+    }
+
+    /**
+     * Get the company that owns the chart of account.
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
     }
 
     /**
@@ -249,4 +257,4 @@ class ChartOfAccount extends Model
             default => 'secondary'
         };
     }
-} 
+}

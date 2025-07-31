@@ -8,10 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasUuids;
+    use HasApiTokens, HasFactory, Notifiable, HasUuids, HasRoles;
 
     public $incrementing = false;
     protected $keyType = 'string';
@@ -62,7 +63,7 @@ class User extends Authenticatable
      */
     public function adminlte_desc()
     {
-        return $this->role === 'admin' ? 'Administrator' : 'User';
+        return $this->hasRole('superadmin') ? 'Super Administrator' : 'Company Administrator';
     }
 
     /**

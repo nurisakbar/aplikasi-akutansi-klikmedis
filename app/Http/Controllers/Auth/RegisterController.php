@@ -8,6 +8,7 @@ use App\Services\Auth\AuthServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class RegisterController extends Controller
 {
@@ -54,7 +55,6 @@ class RegisterController extends Controller
                     'name' => $request->owner_name,
                     'email' => $request->owner_email,
                     'password' => $request->password,
-                    'role' => 'admin',
                 ];
 
                 $result = $this->authService->registerCompany($companyData, $userData);
@@ -93,7 +93,6 @@ class RegisterController extends Controller
                 'name' => $request->owner_name,
                 'email' => $request->owner_email,
                 'password' => $request->password,
-                'role' => 'admin',
             ];
 
             $result = $this->authService->registerCompany($companyData, $userData);

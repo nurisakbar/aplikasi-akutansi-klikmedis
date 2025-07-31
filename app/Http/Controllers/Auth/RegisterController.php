@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\Auth\AuthServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class RegisterController extends Controller
 {
@@ -33,8 +34,49 @@ class RegisterController extends Controller
      */
     public function register(RegisterRequest $request)
     {
-        if ($request->ajax()) {
-            // Prepare company data
+        try {
+            if ($request->ajax()) {
+                // Prepare company data using database column names
+                $companyData = [
+                    'name' => $request->company_name,
+                    'address' => $request->company_address,
+                    'province' => $request->company_province,
+                    'city' => $request->company_city,
+                    'district' => $request->company_district,
+                    'postal_code' => $request->company_postal_code,
+                    'email' => $request->company_email,
+                    'phone' => $request->company_phone,
+                    'website' => $request->company_website,
+                ];
+
+                // Prepare user data using database column names
+                $userData = [
+                    'name' => $request->owner_name,
+                    'email' => $request->owner_email,
+                    'password' => $request->password,
+                    'role' => 'admin',
+                ];
+
+                $result = $this->authService->registerCompany($companyData, $userData);
+
+                if ($result['success']) {
+                    // Auto login after successful registration
+                    Auth::login($result['user']);
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Pendaftaran berhasil! Selamat datang di sistem akuntansi kami.',
+                        'redirect' => route('chart-of-accounts.index')
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $result['message']
+                    ], 422);
+                }
+            }
+
+            // Non-AJAX fallback
             $companyData = [
                 'name' => $request->company_name,
                 'address' => $request->company_address,
@@ -47,7 +89,6 @@ class RegisterController extends Controller
                 'website' => $request->company_website,
             ];
 
-            // Prepare user data
             $userData = [
                 'name' => $request->owner_name,
                 'email' => $request->owner_email,
@@ -58,52 +99,34 @@ class RegisterController extends Controller
             $result = $this->authService->registerCompany($companyData, $userData);
 
             if ($result['success']) {
-                // Auto login after successful registration
                 Auth::login($result['user']);
+                return redirect()->route('chart-of-accounts.index')
+                    ->with('success', 'Pendaftaran berhasil! Selamat datang di sistem akuntansi kami.');
+            }
 
+            return back()->withErrors([
+                'error' => $result['message']
+            ])->withInput();
+        } catch (ValidationException $e) {
+            if ($request->ajax()) {
                 return response()->json([
-                    'success' => true,
-                    'message' => 'Pendaftaran berhasil! Selamat datang di sistem akuntansi kami.',
-                    'redirect' => route('chart-of-accounts.index')
-                ]);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message']
+                    'message' => 'The given data was invalid.',
+                    'errors' => $e->errors(),
                 ], 422);
             }
+
+            throw $e;
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat mendaftar: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withErrors([
+                'error' => 'Terjadi kesalahan saat mendaftar: ' . $e->getMessage()
+            ])->withInput();
         }
-
-        // Non-AJAX fallback
-        $companyData = [
-            'name' => $request->company_name,
-            'address' => $request->company_address,
-            'province' => $request->company_province,
-            'city' => $request->company_city,
-            'district' => $request->company_district,
-            'postal_code' => $request->company_postal_code,
-            'email' => $request->company_email,
-            'phone' => $request->company_phone,
-            'website' => $request->company_website,
-        ];
-
-        $userData = [
-            'name' => $request->owner_name,
-            'email' => $request->owner_email,
-            'password' => $request->password,
-            'role' => 'admin',
-        ];
-
-        $result = $this->authService->registerCompany($companyData, $userData);
-
-        if ($result['success']) {
-            Auth::login($result['user']);
-            return redirect()->route('chart-of-accounts.index')
-                ->with('success', 'Pendaftaran berhasil! Selamat datang di sistem akuntansi kami.');
-        }
-
-        return back()->withErrors([
-            'error' => $result['message']
-        ])->withInput();
     }
 }

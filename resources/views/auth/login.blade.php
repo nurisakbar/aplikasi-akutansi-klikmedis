@@ -1,58 +1,74 @@
-@extends('layouts.auth')
+@extends('adminlte::auth.login')
 
 @section('title', 'Login - Akuntansi Klik Medis')
-@section('card_width', '400px')
-@section('header_icon', 'fas fa-calculator')
-@section('header_title', 'Akuntansi Klik Medis')
-@section('header_subtitle', 'Silakan login untuk melanjutkan')
 
-@section('auth_content')
-<form id="loginForm" method="POST" action="{{ route('auth.login.post') }}">
-    @csrf
+@section('auth_header', 'Akuntansi Klik Medis')
 
-    <div class="mb-3">
-        <label for="email" class="form-label required-field">Email</label>
-        <input type="email"
-               class="form-control @error('email') is-invalid @enderror"
-               id="email"
-               name="email"
-               placeholder="Masukkan email Anda"
-               value="{{ old('email') }}"
-               required>
-        @error('email')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
+@section('auth_body')
+    <form action="{{ route('auth.login.post') }}" method="post">
+        @csrf
 
-    <div class="mb-4">
-        <label for="password" class="form-label required-field">Password</label>
-        <input type="password"
-               class="form-control @error('password') is-invalid @enderror"
-               id="password"
-               name="password"
-               placeholder="Masukkan password Anda"
-               required>
-        @error('password')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
+        {{-- Email field --}}
+        <div class="input-group mb-3">
+            <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                   value="{{ old('email') }}" placeholder="Email" autofocus>
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-envelope"></span>
+                </div>
+            </div>
+            @error('email')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
+        </div>
 
-    <button type="submit" class="btn btn-primary w-100 mb-3">
-        <i class="fas fa-sign-in-alt me-2"></i>Login
-    </button>
+        {{-- Password field --}}
+        <div class="input-group mb-3">
+            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror"
+                   placeholder="Password">
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-lock"></span>
+                </div>
+            </div>
+            @error('password')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
+        </div>
 
-    <div class="text-center">
-        <p class="mb-0">Belum punya akun?
-            <a href="{{ route('auth.register') }}" class="text-decoration-none">Daftar disini</a>
-        </p>
-    </div>
-</form>
-@endsection
+        {{-- Login field --}}
+        <div class="row">
+            <div class="col-7">
+                <div class="icheck-primary">
+                    <input type="checkbox" name="remember" id="remember">
+                    <label for="remember">
+                        Ingat Saya
+                    </label>
+                </div>
+            </div>
+            <div class="col-5">
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </div>
+        </div>
+    </form>
+@stop
 
-@push('custom_js')
+@section('auth_footer')
+    <p class="my-0">
+        <a href="{{ route('auth.register') }}">
+            Daftar akun baru
+        </a>
+    </p>
+@stop
+
+@push('js')
 <script>
 $(document).ready(function() {
-    $('#loginForm').on('submit', function(e) {
+    $('form').on('submit', function(e) {
         e.preventDefault();
 
         const form = $(this);
@@ -64,7 +80,7 @@ $(document).ready(function() {
         $('.invalid-feedback').remove();
 
         // Disable button and show loading
-        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Loading...');
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Loading...');
 
         $.ajax({
             url: form.attr('action'),
@@ -98,12 +114,12 @@ $(document).ready(function() {
                         const input = $(`[name="${field}"]`);
                         input.addClass('is-invalid');
 
-                        // Show error message
+                        // Show error message from AJAX response
                         const errorDiv = input.siblings('.invalid-feedback');
                         if (errorDiv.length === 0) {
-                            input.after(`<div class="invalid-feedback">${response.errors[field][0]}</div>`);
+                            input.after(`<span class="invalid-feedback" role="alert"><strong>${response.errors[field][0]}</strong></span>`);
                         } else {
-                            errorDiv.text(response.errors[field][0]);
+                            errorDiv.html(`<strong>${response.errors[field][0]}</strong>`);
                         }
                     });
                 }

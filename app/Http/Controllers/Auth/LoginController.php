@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Services\Auth\AuthServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -62,6 +63,15 @@ class LoginController extends Controller
             return back()->withErrors([
                 'email' => $result['message'] ?? 'Email atau password salah',
             ])->withInput($request->only('email'));
+        } catch (ValidationException $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'message' => 'The given data was invalid.',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            throw $e;
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([

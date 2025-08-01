@@ -15,7 +15,7 @@ class UpdateChartOfAccountRequest extends FormRequest
 
     public function rules(): array
     {
-        $companyId = Auth::user()->company_id;
+        $companyId = Auth::user()->accountancy_company_id;
 
         $rules = [
             'name' => 'required|string|max:100',
@@ -25,26 +25,26 @@ class UpdateChartOfAccountRequest extends FormRequest
             'is_active' => 'boolean',
         ];
 
-        // Add unique constraint only if user has company_id
+                    // Add unique constraint only if user has accountancy_company_id
         if ($companyId) {
             $rules['code'] = [
                 'required',
                 'string',
                 'max:20',
-                Rule::unique('akuntansi_chart_of_accounts', 'code')
+                Rule::unique('accountancy_chart_of_accounts', 'code')
                     ->ignore($this->route('chart_of_account'))
-                    ->where('company_id', $companyId),
+                    ->where('accountancy_company_id', $companyId),
             ];
-            $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id,company_id,' . $companyId;
+            $rules['parent_id'] = 'nullable|uuid|exists:accountancy_chart_of_accounts,id,accountancy_company_id,' . $companyId;
         } else {
             $rules['code'] = [
                 'required',
                 'string',
                 'max:20',
-                Rule::unique('akuntansi_chart_of_accounts', 'code')
+                Rule::unique('accountancy_chart_of_accounts', 'code')
                     ->ignore($this->route('chart_of_account')),
             ];
-            $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id';
+            $rules['parent_id'] = 'nullable|uuid|exists:accountancy_chart_of_accounts,id';
         }
 
         return $rules;

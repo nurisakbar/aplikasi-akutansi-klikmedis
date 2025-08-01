@@ -14,7 +14,7 @@ class GeneralLedgerFilterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'account_id' => 'required|uuid|exists:akuntansi_chart_of_accounts,id',
+            'account_id' => 'required|uuid|exists:accountancy_chart_of_accounts,id',
             'date_from' => 'nullable|date',
             'date_to' => 'nullable|date',
             'status' => 'nullable|in:draft,posted',

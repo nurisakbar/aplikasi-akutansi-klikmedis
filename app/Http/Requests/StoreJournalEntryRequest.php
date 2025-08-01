@@ -19,7 +19,7 @@ class StoreJournalEntryRequest extends FormRequest
             'reference' => 'nullable|string',
             'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'lines' => 'required|array|min:2',
-            'lines.*.chart_of_account_id' => 'required|uuid|exists:akuntansi_chart_of_accounts,id',
+            'lines.*.chart_of_account_id' => 'required|uuid|exists:accountancy_chart_of_accounts,id',
             'lines.*.debit' => 'required|numeric|min:0',
             'lines.*.credit' => 'required|numeric|min:0',
             'lines.*.description' => 'nullable|string',

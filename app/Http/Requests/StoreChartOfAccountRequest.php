@@ -16,7 +16,7 @@ class StoreChartOfAccountRequest extends FormRequest
     public function rules(): array
     {
         $user = Auth::user();
-        $companyId = $user->company_id;
+        $companyId = $user->accountancy_company_id;
 
         $rules = [
             'code' => 'required|string|max:20',
@@ -30,22 +30,22 @@ class StoreChartOfAccountRequest extends FormRequest
         // Add unique constraint based on user role and company
         if ($user->hasRole('superadmin')) {
             // Superadmin uses global company
-            $globalCompany = \App\Models\Company::where('name', 'Global System')->first();
+            $globalCompany = \App\Models\AccountancyCompany::where('name', 'Global System')->first();
             if ($globalCompany) {
-                $rules['code'] .= '|unique:akuntansi_chart_of_accounts,code,NULL,id,company_id,' . $globalCompany->id;
-                $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id,company_id,' . $globalCompany->id;
+                $rules['code'] .= '|unique:accountancy_chart_of_accounts,code,NULL,id,accountancy_company_id,' . $globalCompany->id;
+                $rules['parent_id'] = 'nullable|uuid|exists:accountancy_chart_of_accounts,id,accountancy_company_id,' . $globalCompany->id;
             } else {
-                $rules['code'] .= '|unique:akuntansi_chart_of_accounts,code';
-                $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id';
+                $rules['code'] .= '|unique:accountancy_chart_of_accounts,code';
+                $rules['parent_id'] = 'nullable|uuid|exists:accountancy_chart_of_accounts,id';
             }
         } elseif ($companyId) {
             // Company admin - unique within company
-            $rules['code'] .= '|unique:akuntansi_chart_of_accounts,code,NULL,id,company_id,' . $companyId;
-            $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id,company_id,' . $companyId;
+                            $rules['code'] .= '|unique:accountancy_chart_of_accounts,code,NULL,id,accountancy_company_id,' . $companyId;
+                $rules['parent_id'] = 'nullable|uuid|exists:accountancy_chart_of_accounts,id,accountancy_company_id,' . $companyId;
         } else {
             // Fallback
-            $rules['code'] .= '|unique:akuntansi_chart_of_accounts,code';
-            $rules['parent_id'] = 'nullable|uuid|exists:akuntansi_chart_of_accounts,id';
+            $rules['code'] .= '|unique:accountancy_chart_of_accounts,code';
+            $rules['parent_id'] = 'nullable|uuid|exists:accountancy_chart_of_accounts,id';
         }
 
         // Remove parent_id validation if it's empty

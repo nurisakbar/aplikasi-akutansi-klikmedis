@@ -6,6 +6,7 @@ use App\Services\FixedAssetService;
 use App\Http\Requests\FixedAssetFilterRequest;
 use App\Http\Requests\StoreFixedAssetRequest;
 use App\Exports\FixedAssetExport;
+use App\Models\AccountancyFixedAsset;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
@@ -20,8 +21,8 @@ class FixedAssetController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = \App\Models\FixedAsset::query();
-            return \Yajra\DataTables\Facades\DataTables::of($query)
+            $query = AccountancyFixedAsset::query();
+            return DataTables::of($query)
                 ->addColumn('actions', function ($row) {
                     return view('fixed_assets.partials.actions', compact('row'))->render();
                 })
@@ -51,19 +52,16 @@ class FixedAssetController extends Controller
         return redirect()->route('fixed-assets.index')->with('success', 'Aset tetap berhasil disimpan.');
     }
 
-    public function show($id)
+    public function show(AccountancyFixedAsset $fixedAsset)
     {
-        $asset = $this->service->find($id);
+        $asset = $fixedAsset;
         $depreciation = $this->service->calculateDepreciation($asset);
         return view('fixed_assets.show', compact('asset','depreciation'));
     }
 
-    public function edit($id)
+    public function edit(AccountancyFixedAsset $fixedAsset)
     {
-        $asset = $this->service->find($id);
-        if (!$asset) {
-            return redirect()->route('fixed-assets.index')->with('error', 'Data aset tidak ditemukan.');
-        }
+        $asset = $fixedAsset;
         return view('fixed_assets.edit', compact('asset'));
     }
 
@@ -72,4 +70,4 @@ class FixedAssetController extends Controller
         $filter = $request->validated();
         return Excel::download(new FixedAssetExport($filter), 'fixed_assets.xlsx');
     }
-} 
+}

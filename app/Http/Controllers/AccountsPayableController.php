@@ -6,6 +6,7 @@ use App\Services\AccountsPayableService;
 use App\Http\Requests\AccountsPayableFilterRequest;
 use App\Http\Requests\StoreAccountsPayableRequest;
 use App\Exports\AccountsPayableExport;
+use App\Models\AccountsPayable;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
@@ -48,9 +49,9 @@ class AccountsPayableController extends Controller
         return Excel::download(new AccountsPayableExport($filter), 'accounts_payable.xlsx');
     }
 
-    public function show($id)
+    public function show(AccountsPayable $accountsPayable)
     {
-        $payable = \App\Models\AccountsPayable::with('supplier', 'payments')->findOrFail($id);
+        $payable = $accountsPayable->load('supplier', 'payments');
         return view('accounts_payable.show', compact('payable'));
     }
-} 
+}

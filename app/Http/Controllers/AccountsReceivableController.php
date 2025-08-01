@@ -6,6 +6,7 @@ use App\Services\AccountsReceivableService;
 use App\Http\Requests\AccountsReceivableFilterRequest;
 use App\Http\Requests\StoreAccountsReceivableRequest;
 use App\Exports\AccountsReceivableExport;
+use App\Models\AccountsReceivable;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
@@ -48,9 +49,9 @@ class AccountsReceivableController extends Controller
         return Excel::download(new AccountsReceivableExport($filter), 'accounts_receivable.xlsx');
     }
 
-    public function show($id)
+    public function show(AccountsReceivable $accountsReceivable)
     {
-        $receivable = \App\Models\AccountsReceivable::with('customer', 'payments')->findOrFail($id);
+        $receivable = $accountsReceivable->load('customer', 'payments');
         return view('accounts_receivable.show', compact('receivable'));
     }
-} 
+}

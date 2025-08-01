@@ -10,7 +10,7 @@
             <b>Status:</b> {{ $payable->status == 'paid' ? 'Lunas' : 'Belum Lunas' }}
         </div>
     </div>
-    <form method="POST" action="{{ route('accounts-payable.payments.store', $payable->id) }}" class="row g-3">
+    <form method="POST" action="{{ route('accounts-payable.payments.store', $payable) }}" class="row g-3">
         @csrf
         <div class="col-md-3">
             <label>Tanggal</label>
@@ -26,8 +26,8 @@
         </div>
         <div class="col-md-12">
             <button class="btn btn-primary">Simpan Pembayaran</button>
-            <a href="{{ route('accounts-payable.show', $payable->id) }}" class="btn btn-secondary">Batal</a>
+            <a href="{{ route('accounts-payable.show', $payable) }}" class="btn btn-secondary">Batal</a>
         </div>
     </form>
 </div>
-@endsection 
+@endsection

@@ -6,6 +6,7 @@ use App\Services\ExpenseService;
 use App\Http\Requests\ExpenseFilterRequest;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Exports\ExpenseExport;
+use App\Models\AccountancyExpense;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 
@@ -20,12 +21,12 @@ class ExpenseController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = \App\Models\Expense::query();
+            $query = AccountancyExpense::query();
             if ($request->filled('type')) $query->where('type', $request->type);
             if ($request->filled('status')) $query->where('status', $request->status);
             if ($request->filled('date_from')) $query->where('date', '>=', $request->date_from);
             if ($request->filled('date_to')) $query->where('date', '<=', $request->date_to);
-            return \Yajra\DataTables\Facades\DataTables::of($query)
+            return DataTables::of($query)
                 ->addColumn('actions', function ($row) {
                     return view('expenses.partials.actions', compact('row'))->render();
                 })
@@ -52,24 +53,19 @@ class ExpenseController extends Controller
         return redirect()->route('expenses.index')->with('success', 'Data beban berhasil disimpan.');
     }
 
-    public function show($id)
+    public function show(AccountancyExpense $expense)
     {
-        $expense = $this->service->find($id);
         return view('expenses.show', compact('expense'));
     }
 
-    public function edit($id)
+    public function edit(AccountancyExpense $expense)
     {
-        $expense = $this->service->find($id);
-        if (!$expense) {
-            return redirect()->route('expenses.index')->with('error', 'Data beban tidak ditemukan.');
-        }
         return view('expenses.edit', compact('expense'));
     }
 
-    public function update(StoreExpenseRequest $request, $id)
+    public function update(StoreExpenseRequest $request, AccountancyExpense $expense)
     {
-        $this->service->update($id, $request->validated());
+        $this->service->update($expense->id, $request->validated());
         return redirect()->route('expenses.index')->with('success', 'Data beban berhasil diupdate.');
     }
 
@@ -79,15 +75,15 @@ class ExpenseController extends Controller
         return Excel::download(new ExpenseExport($filter), 'expenses.xlsx');
     }
 
-    public function destroy($id)
+    public function destroy(AccountancyExpense $expense)
     {
-        $this->service->delete($id);
+        $this->service->delete($expense->id);
         return redirect()->route('expenses.index')->with('success', 'Data beban berhasil dihapus.');
     }
 
     public function getExpenseTypes()
     {
-        $types = \App\Models\Expense::query()->select('type')->distinct()->orderBy('type')->pluck('type');
+        $types = AccountancyExpense::query()->select('type')->distinct()->orderBy('type')->pluck('type');
         return response()->json($types);
     }
-} 
+}

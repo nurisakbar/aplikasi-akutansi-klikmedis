@@ -10,7 +10,7 @@
             <b>Status:</b> {{ $receivable->status == 'paid' ? 'Lunas' : 'Belum Lunas' }}
         </div>
     </div>
-    <form method="POST" action="{{ route('accounts-receivable.payments.store', $receivable->id) }}" class="row g-3">
+    <form method="POST" action="{{ route('accounts-receivable.payments.store', $receivable) }}" class="row g-3">
         @csrf
         <div class="col-md-3">
             <label>Tanggal</label>
@@ -26,8 +26,8 @@
         </div>
         <div class="col-md-12">
             <button class="btn btn-primary">Simpan Pembayaran</button>
-            <a href="{{ route('accounts-receivable.show', $receivable->id) }}" class="btn btn-secondary">Batal</a>
+            <a href="{{ route('accounts-receivable.show', $receivable) }}" class="btn btn-secondary">Batal</a>
         </div>
     </form>
 </div>
-@endsection 
+@endsection

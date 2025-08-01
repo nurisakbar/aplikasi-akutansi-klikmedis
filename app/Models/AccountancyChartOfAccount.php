@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\AccountType;
+use App\Enums\AccountCategory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,29 +12,6 @@ use Illuminate\Database\Eloquent\Builder;
 class AccountancyChartOfAccount extends Model
 {
     use HasUuids, SoftDeletes;
-
-    /**
-     * Account Types
-     */
-    public const TYPE_ASSET = 'asset';
-    public const TYPE_LIABILITY = 'liability';
-    public const TYPE_EQUITY = 'equity';
-    public const TYPE_REVENUE = 'revenue';
-    public const TYPE_EXPENSE = 'expense';
-
-    /**
-     * Account Categories
-     */
-    public const CATEGORY_CURRENT_ASSET = 'current_asset';
-    public const CATEGORY_FIXED_ASSET = 'fixed_asset';
-    public const CATEGORY_OTHER_ASSET = 'other_asset';
-    public const CATEGORY_CURRENT_LIABILITY = 'current_liability';
-    public const CATEGORY_LONG_TERM_LIABILITY = 'long_term_liability';
-    public const CATEGORY_EQUITY = 'equity';
-    public const CATEGORY_OPERATING_REVENUE = 'operating_revenue';
-    public const CATEGORY_OTHER_REVENUE = 'other_revenue';
-    public const CATEGORY_OPERATING_EXPENSE = 'operating_expense';
-    public const CATEGORY_OTHER_EXPENSE = 'other_expense';
 
     /**
      * The table associated with the model.
@@ -80,6 +59,8 @@ class AccountancyChartOfAccount extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'type' => AccountType::class,
+        'category' => AccountCategory::class,
         'is_active' => 'boolean',
         'level' => 'integer',
         'created_at' => 'datetime',
@@ -90,38 +71,21 @@ class AccountancyChartOfAccount extends Model
     /**
      * Get valid account types.
      *
-     * @return array<string>
+     * @return array<string, string>
      */
     public static function getValidTypes(): array
     {
-        return [
-            self::TYPE_ASSET,
-            self::TYPE_LIABILITY,
-            self::TYPE_EQUITY,
-            self::TYPE_REVENUE,
-            self::TYPE_EXPENSE
-        ];
+        return AccountType::getOptions();
     }
 
     /**
      * Get valid account categories.
      *
-     * @return array<string>
+     * @return array<string, string>
      */
     public static function getValidCategories(): array
     {
-        return [
-            self::CATEGORY_CURRENT_ASSET,
-            self::CATEGORY_FIXED_ASSET,
-            self::CATEGORY_OTHER_ASSET,
-            self::CATEGORY_CURRENT_LIABILITY,
-            self::CATEGORY_LONG_TERM_LIABILITY,
-            self::CATEGORY_EQUITY,
-            self::CATEGORY_OPERATING_REVENUE,
-            self::CATEGORY_OTHER_REVENUE,
-            self::CATEGORY_OPERATING_EXPENSE,
-            self::CATEGORY_OTHER_EXPENSE
-        ];
+        return AccountCategory::getOptions();
     }
 
     /**
@@ -221,7 +185,15 @@ class AccountancyChartOfAccount extends Model
     }
 
     /**
-     * Get accounts by company ID.
+     * Scope a query to filter by company ID.
+     */
+    public function scopeGetByCompanyId(Builder $query, string $companyId): void
+    {
+        $query->where('accountancy_company_id', $companyId);
+    }
+
+    /**
+     * Get accounts by company ID (static method for backward compatibility).
      */
     public static function getByCompanyId(string $companyId): Builder
     {
@@ -241,7 +213,7 @@ class AccountancyChartOfAccount extends Model
      */
     public function getFormattedCategoryAttribute(): string
     {
-        return ucwords(str_replace('_', ' ', $this->category));
+        return $this->category->getLabel();
     }
 
     /**
@@ -250,10 +222,10 @@ class AccountancyChartOfAccount extends Model
     public function getTypeBadgeClassAttribute(): string
     {
         return match($this->type) {
-            self::TYPE_ASSET => 'success',
-            self::TYPE_LIABILITY => 'danger',
-            self::TYPE_EQUITY => 'warning',
-            self::TYPE_REVENUE => 'info',
+            AccountType::ASSET => 'success',
+            AccountType::LIABILITY => 'danger',
+            AccountType::EQUITY => 'warning',
+            AccountType::REVENUE => 'info',
             default => 'secondary'
         };
     }

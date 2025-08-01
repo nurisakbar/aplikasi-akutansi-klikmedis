@@ -6,6 +6,8 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\AccountancyChartOfAccount;
 use App\Models\AccountancyCompany;
+use App\Enums\AccountType;
+use App\Enums\AccountCategory;
 use Illuminate\Support\Str;
 
 class AccountancyChartOfAccountSeeder extends Seeder
@@ -40,57 +42,57 @@ class AccountancyChartOfAccountSeeder extends Seeder
             [
                 'code' => '1000',
                 'name' => 'Cash in Hand',
-                'type' => AccountancyChartOfAccount::TYPE_ASSET,
-                'category' => AccountancyChartOfAccount::CATEGORY_CURRENT_ASSET,
+                'type' => AccountType::ASSET,
+                'category' => AccountCategory::CURRENT_ASSET,
                 'description' => 'Cash available in hand'
             ],
             [
                 'code' => '1100',
                 'name' => 'Cash at Bank',
-                'type' => AccountancyChartOfAccount::TYPE_ASSET,
-                'category' => AccountancyChartOfAccount::CATEGORY_CURRENT_ASSET,
+                'type' => AccountType::ASSET,
+                'category' => AccountCategory::CURRENT_ASSET,
                 'description' => 'Cash deposited in bank accounts'
             ],
             [
                 'code' => '2000',
                 'name' => 'Accounts Payable',
-                'type' => AccountancyChartOfAccount::TYPE_LIABILITY,
-                'category' => AccountancyChartOfAccount::CATEGORY_CURRENT_LIABILITY,
+                'type' => AccountType::LIABILITY,
+                'category' => AccountCategory::CURRENT_LIABILITY,
                 'description' => 'Money owed to suppliers'
             ],
             [
                 'code' => '3000',
                 'name' => 'Owner Equity',
-                'type' => AccountancyChartOfAccount::TYPE_EQUITY,
-                'category' => AccountancyChartOfAccount::CATEGORY_EQUITY,
+                'type' => AccountType::EQUITY,
+                'category' => AccountCategory::EQUITY,
                 'description' => 'Owner equity account'
             ],
             [
                 'code' => '4000',
                 'name' => 'Sales Revenue',
-                'type' => AccountancyChartOfAccount::TYPE_REVENUE,
-                'category' => AccountancyChartOfAccount::CATEGORY_OPERATING_REVENUE,
+                'type' => AccountType::REVENUE,
+                'category' => AccountCategory::OPERATING_REVENUE,
                 'description' => 'Revenue from sales'
             ],
             [
                 'code' => '5000',
                 'name' => 'Office Expenses',
-                'type' => AccountancyChartOfAccount::TYPE_EXPENSE,
-                'category' => AccountancyChartOfAccount::CATEGORY_OPERATING_EXPENSE,
+                'type' => AccountType::EXPENSE,
+                'category' => AccountCategory::OPERATING_EXPENSE,
                 'description' => 'General office expenses'
             ],
             [
                 'code' => '1200',
                 'name' => 'Accounts Receivable',
-                'type' => AccountancyChartOfAccount::TYPE_ASSET,
-                'category' => AccountancyChartOfAccount::CATEGORY_CURRENT_ASSET,
+                'type' => AccountType::ASSET,
+                'category' => AccountCategory::CURRENT_ASSET,
                 'description' => 'Money owed by customers'
             ],
             [
                 'code' => '1300',
                 'name' => 'Inventory',
-                'type' => AccountancyChartOfAccount::TYPE_ASSET,
-                'category' => AccountancyChartOfAccount::CATEGORY_CURRENT_ASSET,
+                'type' => AccountType::ASSET,
+                'category' => AccountCategory::CURRENT_ASSET,
                 'description' => 'Goods available for sale'
             ]
         ];

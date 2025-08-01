@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AccountancyChartOfAccount;
+use App\Models\AccountancyCompany;
 use App\Http\Requests\StoreChartOfAccountRequest;
 use App\Http\Requests\UpdateChartOfAccountRequest;
 use Illuminate\Http\Request;
@@ -63,11 +64,9 @@ class ChartOfAccountController extends Controller
                 return response()->json(['data' => $accounts]);
             }
 
-            \Log::info('AJAX request received for chart of accounts');
             return $this->getDataTableResponse($request);
         }
 
-        \Log::info('View request received for chart of accounts');
         return view('chart_of_accounts.index');
     }
 
@@ -79,13 +78,6 @@ class ChartOfAccountController extends Controller
         try {
             $companyId = $this->getCompanyId();
 
-            // Debug logging
-            \Log::info('DataTables request', [
-                'company_id' => $companyId,
-                'user' => Auth::user()->name,
-                'user_company' => Auth::user()->accountancyCompany ? Auth::user()->accountancyCompany->name : 'Super Admin'
-            ]);
-
             $query = AccountancyChartOfAccount::query();
 
             // Filter by company_id if not superadmin
@@ -94,10 +86,6 @@ class ChartOfAccountController extends Controller
             }
 
             $query->with('parent');
-
-            // Debug: check query count
-            $count = $query->count();
-            \Log::info('Query count', ['count' => $count]);
 
             $datatable = DataTables::of($query)
                 ->addColumn('code_formatted', function (ChartOfAccount $account) {
@@ -130,17 +118,9 @@ class ChartOfAccountController extends Controller
                 ->rawColumns(['code_formatted', 'name_formatted', 'type_formatted', 'status_formatted', 'actions'])
                 ->make(true);
 
-            \Log::info('DataTables response created successfully');
             return $datatable;
 
         } catch (\Exception $e) {
-            \Log::error('DataTables error', [
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
             return response()->json([
                 'error' => 'Terjadi kesalahan saat memuat data',
                 'message' => $e->getMessage()
@@ -168,12 +148,6 @@ class ChartOfAccountController extends Controller
     public function store(StoreChartOfAccountRequest $request): RedirectResponse|JsonResponse
     {
         try {
-            \Log::info('Store COA request received', [
-                'data' => $request->all(),
-                'user' => Auth::user()->email,
-                'company_id' => $this->getCompanyId()
-            ]);
-
             $validated = $request->validated();
             $validated['id'] = (string) Str::uuid();
 
@@ -181,7 +155,7 @@ class ChartOfAccountController extends Controller
             $user = Auth::user();
             if ($user->hasRole('superadmin')) {
                 // For superadmin, create or get a special company for global COA
-                $globalCompany = \App\Models\AccountancyCompany::firstOrCreate(
+                $globalCompany = AccountancyCompany::firstOrCreate(
                     ['name' => 'Global System'],
                     [
                         'id' => (string) \Illuminate\Support\Str::uuid(),
@@ -196,15 +170,11 @@ class ChartOfAccountController extends Controller
 
             $validated['is_active'] = $request->boolean('is_active', true);
 
-            \Log::info('Validated data', $validated);
-
             $account = AccountancyChartOfAccount::create($validated);
 
             if (!$account->isRoot()) {
                 $account->updatePath();
             }
-
-            \Log::info('COA created successfully', ['id' => $account->id]);
 
             if ($request->ajax()) {
                 return response()->json([
@@ -218,10 +188,6 @@ class ChartOfAccountController extends Controller
                 ->route('chart-of-accounts.index')
                 ->with('success', 'Akun berhasil ditambahkan.');
         } catch (\Exception $e) {
-            \Log::error('Error creating COA', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
 
             if ($request->ajax()) {
                 return response()->json([

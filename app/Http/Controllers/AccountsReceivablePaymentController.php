@@ -15,15 +15,15 @@ class AccountsReceivablePaymentController extends Controller
         $this->service = $service;
     }
 
-    public function create($receivableId)
+    public function create(AccountsReceivable $accountsReceivable)
     {
-        $receivable = AccountsReceivable::findOrFail($receivableId);
+        $receivable = $accountsReceivable;
         return view('accounts_receivable.payments.create', compact('receivable'));
     }
 
-    public function store(StoreAccountsReceivablePaymentRequest $request, $receivableId): RedirectResponse
+    public function store(StoreAccountsReceivablePaymentRequest $request, AccountsReceivable $accountsReceivable): RedirectResponse
     {
-        $this->service->addPayment($receivableId, $request->validated());
-        return redirect()->route('accounts-receivable.show', $receivableId)->with('success', 'Pembayaran berhasil disimpan.');
+        $this->service->addPayment($accountsReceivable->id, $request->validated());
+        return redirect()->route('accounts-receivable.show', $accountsReceivable)->with('success', 'Pembayaran berhasil disimpan.');
     }
-} 
+}

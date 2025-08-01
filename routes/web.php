@@ -118,18 +118,18 @@ Route::get('accounts-receivable', [AccountsReceivableController::class, 'index']
 Route::get('accounts-receivable/create', [AccountsReceivableController::class, 'create'])->name('accounts-receivable.create');
 Route::post('accounts-receivable', [AccountsReceivableController::class, 'store'])->name('accounts-receivable.store');
 Route::get('accounts-receivable/export', [AccountsReceivableController::class, 'export'])->name('accounts-receivable.export');
-Route::get('accounts-receivable/{id}/payments/create', [AccountsReceivablePaymentController::class, 'create'])->name('accounts-receivable.payments.create');
-Route::post('accounts-receivable/{id}/payments', [AccountsReceivablePaymentController::class, 'store'])->name('accounts-receivable.payments.store');
-Route::get('accounts-receivable/{id}', [AccountsReceivableController::class, 'show'])->name('accounts-receivable.show');
+Route::get('accounts-receivable/{accountsReceivable}/payments/create', [AccountsReceivablePaymentController::class, 'create'])->name('accounts-receivable.payments.create');
+Route::post('accounts-receivable/{accountsReceivable}/payments', [AccountsReceivablePaymentController::class, 'store'])->name('accounts-receivable.payments.store');
+Route::get('accounts-receivable/{accountsReceivable}', [AccountsReceivableController::class, 'show'])->name('accounts-receivable.show');
 
 // Transactional Data - Accounts Payable (Hutang)
 Route::get('accounts-payable', [AccountsPayableController::class, 'index'])->name('accounts-payable.index');
 Route::get('accounts-payable/create', [AccountsPayableController::class, 'create'])->name('accounts-payable.create');
 Route::post('accounts-payable', [AccountsPayableController::class, 'store'])->name('accounts-payable.store');
 Route::get('accounts-payable/export', [AccountsPayableController::class, 'export'])->name('accounts-payable.export');
-Route::get('accounts-payable/{id}/payments/create', [AccountsPayablePaymentController::class, 'create'])->name('accounts-payable.payments.create');
-Route::post('accounts-payable/{id}/payments', [AccountsPayablePaymentController::class, 'store'])->name('accounts-payable.payments.store');
-Route::get('accounts-payable/{id}', [AccountsPayableController::class, 'show'])->name('accounts-payable.show');
+Route::get('accounts-payable/{accountsPayable}/payments/create', [AccountsPayablePaymentController::class, 'create'])->name('accounts-payable.payments.create');
+Route::post('accounts-payable/{accountsPayable}/payments', [AccountsPayablePaymentController::class, 'store'])->name('accounts-payable.payments.store');
+Route::get('accounts-payable/{accountsPayable}', [AccountsPayableController::class, 'show'])->name('accounts-payable.show');
 
 // Transactional Data - Expenses (Biaya/Pengeluaran)
 Route::get('expenses/types', [ExpenseController::class, 'getExpenseTypes'])->name('expenses.types');

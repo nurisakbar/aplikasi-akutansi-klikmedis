@@ -63,7 +63,7 @@ class JournalEntryController extends Controller
 
     public function create(): View
     {
-        $accounts = \App\Models\AccountancyChartOfAccount::orderBy('code')->get();
+        $accounts = AccountancyChartOfAccount::orderBy('code')->get();
         return view('journal_entries.create', compact('accounts'));
     }
 
@@ -90,7 +90,7 @@ class JournalEntryController extends Controller
     public function edit(AccountancyJournalEntry $journalEntry): View
     {
         $journalEntry->load('accountancyJournalEntryLines.accountancyChartOfAccount');
-        $accounts = \App\Models\AccountancyChartOfAccount::orderBy('code')->get();
+        $accounts = AccountancyChartOfAccount::orderBy('code')->get();
         return view('journal_entries.edit', compact('journalEntry', 'accounts'));
     }
 

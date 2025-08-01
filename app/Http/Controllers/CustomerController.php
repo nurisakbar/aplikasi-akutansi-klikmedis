@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
+use App\Models\AccountancyCustomer;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -11,8 +11,8 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = \App\Models\Customer::query();
-            return \Yajra\DataTables\Facades\DataTables::of($query)
+            $query = AccountancyCustomer::query();
+            return DataTables::of($query)
                 ->addColumn('actions', function ($row) {
                     return view('customers.partials.actions', compact('row'))->render();
                 })
@@ -66,12 +66,8 @@ class CustomerController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function show($id)
+    public function show(AccountancyCustomer $customer)
     {
-        $customer = \App\Models\Customer::find($id);
-        if (!$customer) {
-            return redirect()->route('customers.index')->with('error', 'Data customer tidak ditemukan.');
-        }
         return view('customers.show', compact('customer'));
     }
-} 
+}

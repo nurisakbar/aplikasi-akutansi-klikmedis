@@ -15,15 +15,15 @@ class AccountsPayablePaymentController extends Controller
         $this->service = $service;
     }
 
-    public function create($payableId)
+    public function create(AccountsPayable $accountsPayable)
     {
-        $payable = AccountsPayable::findOrFail($payableId);
+        $payable = $accountsPayable;
         return view('accounts_payable.payments.create', compact('payable'));
     }
 
-    public function store(StoreAccountsPayablePaymentRequest $request, $payableId): RedirectResponse
+    public function store(StoreAccountsPayablePaymentRequest $request, AccountsPayable $accountsPayable): RedirectResponse
     {
-        $this->service->addPayment($payableId, $request->validated());
-        return redirect()->route('accounts-payable.show', $payableId)->with('success', 'Pembayaran berhasil disimpan.');
+        $this->service->addPayment($accountsPayable->id, $request->validated());
+        return redirect()->route('accounts-payable.show', $accountsPayable)->with('success', 'Pembayaran berhasil disimpan.');
     }
-} 
+}

@@ -4,16 +4,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Pagination Language Lines
+    | Baris Bahasa Paginasi
     |--------------------------------------------------------------------------
     |
-    | The following language lines are used by the paginator library to build
-    | the simple pagination links. You are free to change them to anything
-    | you want to customize your views to better match your application.
+    | Baris bahasa berikut digunakan oleh pustaka paginator untuk membangun
+    | tautan paginasi sederhana. Anda bebas untuk mengubahnya sesuai keinginan
+    | untuk menyesuaikan tampilan Anda agar lebih cocok dengan aplikasi Anda.
     |
     */
 
-    'previous' => '&laquo; Sebelumnya',
-    'next' => 'Selanjutnya &raquo;',
+    'previous' => '<<',
+    'next' => '>>',
 
 ];

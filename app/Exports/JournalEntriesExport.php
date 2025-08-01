@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\JournalEntry;
+use App\Models\AccountancyJournalEntry;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -21,7 +21,7 @@ class JournalEntriesExport implements FromCollection, WithHeadings, WithMapping
 
     public function collection()
     {
-        $query = JournalEntry::with('lines.account');
+        $query = AccountancyJournalEntry::with('accountancyJournalEntryLines.accountancyChartOfAccount');
         if ($this->dateFrom) {
             $query->where('date', '>=', $this->dateFrom);
         }
@@ -41,12 +41,12 @@ class JournalEntriesExport implements FromCollection, WithHeadings, WithMapping
     public function map($entry): array
     {
         $rows = [];
-        foreach ($entry->lines as $line) {
+        foreach ($entry->accountancyJournalEntryLines as $line) {
             $rows[] = [
                 $entry->date,
                 $entry->reference,
                 $entry->description,
-                $line->account ? ($line->account->code . ' - ' . $line->account->name) : '',
+                $line->accountancyChartOfAccount ? ($line->accountancyChartOfAccount->code . ' - ' . $line->accountancyChartOfAccount->name) : '',
                 $line->debit,
                 $line->credit,
                 $line->description,
@@ -55,4 +55,4 @@ class JournalEntriesExport implements FromCollection, WithHeadings, WithMapping
         // Only the first row will be used by Excel, so we flatten for DataTables export
         return $rows[0];
     }
-} 
+}

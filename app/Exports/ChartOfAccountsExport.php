@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\ChartOfAccount;
+use App\Models\AccountancyChartOfAccount;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -12,11 +12,11 @@ class ChartOfAccountsExport implements FromCollection, WithHeadings, WithMapping
 {
     public function collection()
     {
-        if (!Auth::check() || !Auth::user()->company_id) {
+        if (!Auth::check() || !Auth::user()->accountancy_company_id) {
             return collect([]);
         }
-        
-        return ChartOfAccount::getByCompanyId(Auth::user()->company_id)
+
+        return AccountancyChartOfAccount::getByCompanyId(Auth::user()->accountancy_company_id)
             ->with('parent')
             ->orderBy('code')
             ->get();
@@ -42,4 +42,4 @@ class ChartOfAccountsExport implements FromCollection, WithHeadings, WithMapping
             $account->description,
         ];
     }
-} 
+}

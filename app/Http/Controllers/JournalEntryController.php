@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\JournalEntry;
-use App\Models\JournalEntryLine;
-use App\Models\ChartOfAccount;
+use App\Models\AccountancyJournalEntry;
+use App\Models\AccountancyJournalEntryLine;
+use App\Models\AccountancyChartOfAccount;
 use Illuminate\Http\Request as BaseRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +14,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\JsonResponse;
 use App\Http\Requests\StoreJournalEntryRequest;
 use App\Http\Requests\UpdateJournalEntryRequest;
-use App\Repositories\Interfaces\JournalEntryRepositoryInterface;
+use App\Repositories\Interfaces\AccountancyJournalEntryRepositoryInterface;
 use App\Services\JournalEntryService;
 use App\Exports\JournalEntriesExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,7 +25,7 @@ class JournalEntryController extends Controller
     protected $service;
     protected $repository;
 
-    public function __construct(JournalEntryService $service, JournalEntryRepositoryInterface $repository)
+    public function __construct(JournalEntryService $service, AccountancyJournalEntryRepositoryInterface $repository)
     {
         $this->service = $service;
         $this->repository = $repository;
@@ -41,7 +41,7 @@ class JournalEntryController extends Controller
 
     private function getDataTableResponse(BaseRequest $request): JsonResponse
     {
-        $query = JournalEntry::withCount('lines');
+        $query = AccountancyJournalEntry::withCount('accountancyJournalEntryLines');
         if ($request->filled('date_from')) {
             $query->where('date', '>=', $request->input('date_from'));
         }
@@ -54,7 +54,7 @@ class JournalEntryController extends Controller
                 $label = $entry->status === 'posted' ? 'Posted' : 'Draft';
                 return '<span class="badge badge-' . $badge . '">' . $label . '</span>';
             })
-            ->addColumn('actions', function (JournalEntry $entry) {
+            ->addColumn('actions', function (AccountancyJournalEntry $entry) {
                 return view('journal_entries.partials.actions', compact('entry'))->render();
             })
             ->rawColumns(['actions', 'status_badge'])
@@ -63,7 +63,7 @@ class JournalEntryController extends Controller
 
     public function create(): View
     {
-        $accounts = \App\Models\ChartOfAccount::orderBy('code')->get();
+        $accounts = \App\Models\AccountancyChartOfAccount::orderBy('code')->get();
         return view('journal_entries.create', compact('accounts'));
     }
 
@@ -81,20 +81,20 @@ class JournalEntryController extends Controller
         }
     }
 
-    public function show(JournalEntry $journalEntry): View
+    public function show(AccountancyJournalEntry $journalEntry): View
     {
-        $journalEntry->load('lines.account');
+        $journalEntry->load('accountancyJournalEntryLines.accountancyChartOfAccount');
         return view('journal_entries.show', compact('journalEntry'));
     }
 
-    public function edit(JournalEntry $journalEntry): View
+    public function edit(AccountancyJournalEntry $journalEntry): View
     {
-        $journalEntry->load('lines.account');
-        $accounts = \App\Models\ChartOfAccount::orderBy('code')->get();
+        $journalEntry->load('accountancyJournalEntryLines.accountancyChartOfAccount');
+        $accounts = \App\Models\AccountancyChartOfAccount::orderBy('code')->get();
         return view('journal_entries.edit', compact('journalEntry', 'accounts'));
     }
 
-    public function update(UpdateJournalEntryRequest $request, JournalEntry $journalEntry)
+    public function update(UpdateJournalEntryRequest $request, AccountancyJournalEntry $journalEntry)
     {
         $data = $request->validated();
         if ($request->hasFile('attachment')) {
@@ -108,7 +108,7 @@ class JournalEntryController extends Controller
         }
     }
 
-    public function destroy(JournalEntry $journalEntry, BaseRequest $request): JsonResponse
+    public function destroy(AccountancyJournalEntry $journalEntry, BaseRequest $request): JsonResponse
     {
         try {
             $journalEntry->delete();
@@ -131,7 +131,7 @@ class JournalEntryController extends Controller
         return Excel::download(new JournalEntriesExport($dateFrom, $dateTo), 'journal_entries.xlsx');
     }
 
-    public function post(JournalEntry $journalEntry)
+    public function post(AccountancyJournalEntry $journalEntry)
     {
         try {
             $this->service->post($journalEntry);
@@ -151,4 +151,4 @@ class JournalEntryController extends Controller
         $file->storeAs('journal_attachments', $filename, 'public');
         return response()->json(['filename' => $filename]);
     }
-} 
+}

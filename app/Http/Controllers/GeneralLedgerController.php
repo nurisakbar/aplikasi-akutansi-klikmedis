@@ -6,7 +6,7 @@ use App\Http\Requests\GeneralLedgerFilterRequest;
 use App\Services\GeneralLedgerService;
 use App\Exports\GeneralLedgerExport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Models\ChartOfAccount;
+use App\Models\AccountancyChartOfAccount;
 use Illuminate\Http\Request;
 
 class GeneralLedgerController extends Controller
@@ -19,7 +19,7 @@ class GeneralLedgerController extends Controller
 
     public function index(GeneralLedgerFilterRequest $request)
     {
-        $accounts = ChartOfAccount::orderBy('code')->get();
+        $accounts = AccountancyChartOfAccount::orderBy('code')->get();
         $data = null;
         if ($request->filled('account_id')) {
             $data = $this->service->getLedger(
@@ -42,4 +42,4 @@ class GeneralLedgerController extends Controller
         );
         return Excel::download(new GeneralLedgerExport($data), 'general_ledger.xlsx');
     }
-} 
+}

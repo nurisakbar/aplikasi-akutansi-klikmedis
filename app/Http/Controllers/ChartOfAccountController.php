@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ChartOfAccount;
+use App\Models\AccountancyChartOfAccount;
 use App\Http\Requests\StoreChartOfAccountRequest;
 use App\Http\Requests\UpdateChartOfAccountRequest;
 use Illuminate\Http\Request;
@@ -33,11 +33,11 @@ class ChartOfAccountController extends Controller
             return null;
         }
 
-        if (!$user->company_id) {
+        if (!$user->accountancy_company_id) {
             abort(403, 'User tidak terkait dengan perusahaan manapun');
         }
 
-        return $user->company_id;
+        return $user->accountancy_company_id;
     }
 
     /**
@@ -49,7 +49,7 @@ class ChartOfAccountController extends Controller
             // Handle parent_only request for modal dropdown
             if ($request->has('parent_only')) {
                 $companyId = $this->getCompanyId();
-                $query = ChartOfAccount::query();
+                $query = AccountancyChartOfAccount::query();
 
                 // Filter by company_id if not superadmin
                 if ($companyId) {
@@ -83,10 +83,10 @@ class ChartOfAccountController extends Controller
             \Log::info('DataTables request', [
                 'company_id' => $companyId,
                 'user' => Auth::user()->name,
-                'user_company' => Auth::user()->company ? Auth::user()->company->name : 'Super Admin'
+                'user_company' => Auth::user()->accountancyCompany ? Auth::user()->accountancyCompany->name : 'Super Admin'
             ]);
 
-            $query = ChartOfAccount::query();
+            $query = AccountancyChartOfAccount::query();
 
             // Filter by company_id if not superadmin
             if ($companyId) {
@@ -154,7 +154,7 @@ class ChartOfAccountController extends Controller
     public function create(Request $request): View
     {
         $companyId = $this->getCompanyId();
-        $parentAccounts = ChartOfAccount::getByCompanyId($companyId)
+        $parentAccounts = AccountancyChartOfAccount::getByCompanyId($companyId)
             ->active()
             ->orderBy('code')
             ->get();
@@ -181,7 +181,7 @@ class ChartOfAccountController extends Controller
             $user = Auth::user();
             if ($user->hasRole('superadmin')) {
                 // For superadmin, create or get a special company for global COA
-                $globalCompany = \App\Models\Company::firstOrCreate(
+                $globalCompany = \App\Models\AccountancyCompany::firstOrCreate(
                     ['name' => 'Global System'],
                     [
                         'id' => (string) \Illuminate\Support\Str::uuid(),
@@ -189,16 +189,16 @@ class ChartOfAccountController extends Controller
                         'name' => 'Global System'
                     ]
                 );
-                $validated['company_id'] = $globalCompany->id;
+                $validated['accountancy_company_id'] = $globalCompany->id;
             } else {
-                $validated['company_id'] = $this->getCompanyId();
+                $validated['accountancy_company_id'] = $this->getCompanyId();
             }
 
             $validated['is_active'] = $request->boolean('is_active', true);
 
             \Log::info('Validated data', $validated);
 
-            $account = ChartOfAccount::create($validated);
+            $account = AccountancyChartOfAccount::create($validated);
 
             if (!$account->isRoot()) {
                 $account->updatePath();
@@ -255,7 +255,7 @@ class ChartOfAccountController extends Controller
             return response()->json($account);
         }
 
-        $parentAccounts = ChartOfAccount::getByCompanyId($companyId)
+        $parentAccounts = AccountancyChartOfAccount::getByCompanyId($companyId)
             ->where('id', '!=', $id)
             ->active()
             ->orderBy('code')
@@ -345,7 +345,7 @@ class ChartOfAccountController extends Controller
     private function findAccountOrFail(Request $request, string $id): ChartOfAccount
     {
         $companyId = $this->getCompanyId();
-        return ChartOfAccount::getByCompanyId($companyId)
+        return AccountancyChartOfAccount::getByCompanyId($companyId)
             ->where('id', $id)
             ->firstOrFail();
     }

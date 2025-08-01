@@ -194,10 +194,71 @@
                         content: 'swal2-content'
                     }
                 }).then(() => {
-                    window.location.href = '{{ route("auth.login") }}';
+                    window.location.href = '{{ route("login") }}';
                 });
             }
         });
+
+        // Flash Messages with SweetAlert
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Selamat! 🎉',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'Terima Kasih',
+                confirmButtonColor: '#28a745',
+                customClass: {
+                    popup: 'swal2-popup',
+                    title: 'swal2-title',
+                    content: 'swal2-content'
+                }
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops! Ada Kesalahan',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#dc3545',
+                customClass: {
+                    popup: 'swal2-popup',
+                    title: 'swal2-title',
+                    content: 'swal2-content'
+                }
+            });
+        @endif
+
+        @if(session('warning'))
+            Swal.fire({
+                icon: 'warning',
+                title: 'Perhatian!',
+                text: '{{ session('warning') }}',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#ffc107',
+                customClass: {
+                    popup: 'swal2-popup',
+                    title: 'swal2-title',
+                    content: 'swal2-content'
+                }
+            });
+        @endif
+
+        @if(session('info'))
+            Swal.fire({
+                icon: 'info',
+                title: 'Informasi',
+                text: '{{ session('info') }}',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#17a2b8',
+                customClass: {
+                    popup: 'swal2-popup',
+                    title: 'swal2-title',
+                    content: 'swal2-content'
+                }
+            });
+        @endif
     </script>
 
     @stack('custom_js')

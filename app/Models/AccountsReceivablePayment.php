@@ -10,13 +10,12 @@ class AccountsReceivablePayment extends Model
 {
     use SoftDeletes, HasUuids;
 
-    protected $table = 'akuntansi_accounts_receivable_payments';
     protected $fillable = [
         'accounts_receivable_id', 'date', 'amount', 'description'
     ];
 
-    public function receivable()
+    public function accountsReceivable()
     {
         return $this->belongsTo(AccountsReceivable::class, 'accounts_receivable_id');
     }
-} 
+}

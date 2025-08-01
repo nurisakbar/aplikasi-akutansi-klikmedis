@@ -10,18 +10,17 @@ class AccountsPayable extends Model
 {
     use SoftDeletes, HasUuids;
 
-    protected $table = 'akuntansi_accounts_payable';
     protected $fillable = [
         'supplier_id', 'date', 'due_date', 'amount', 'status', 'description'
     ];
 
-    public function supplier()
+    public function accountancySupplier()
     {
-        return $this->belongsTo(Supplier::class);
+        return $this->belongsTo(AccountancySupplier::class, 'supplier_id');
     }
 
-    public function payments()
+    public function accountsPayablePayments()
     {
         return $this->hasMany(AccountsPayablePayment::class, 'accounts_payable_id');
     }
-} 
+}

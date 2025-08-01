@@ -26,7 +26,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'company_id',
+        'accountancy_company_id',
         'role',
     ];
 
@@ -53,9 +53,9 @@ class User extends Authenticatable
     /**
      * Get the company that owns the user.
      */
-    public function company()
+    public function accountancyCompany()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(AccountancyCompany::class, 'accountancy_company_id');
     }
 
     /**

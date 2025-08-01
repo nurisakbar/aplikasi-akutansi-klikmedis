@@ -10,13 +10,12 @@ class AccountsPayablePayment extends Model
 {
     use SoftDeletes, HasUuids;
 
-    protected $table = 'akuntansi_accounts_payable_payments';
     protected $fillable = [
         'accounts_payable_id', 'date', 'amount', 'description'
     ];
 
-    public function payable()
+    public function accountsPayable()
     {
         return $this->belongsTo(AccountsPayable::class, 'accounts_payable_id');
     }
-} 
+}

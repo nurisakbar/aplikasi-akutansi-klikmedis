@@ -2,14 +2,14 @@
 
 namespace App\Repositories\Interfaces;
 
-use App\Models\JournalEntry;
+use App\Models\AccountancyJournalEntry;
 use Illuminate\Database\Eloquent\Collection;
 
-interface JournalEntryRepositoryInterface
+interface AccountancyJournalEntryRepositoryInterface
 {
     public function all(): Collection;
-    public function find(string $id): ?JournalEntry;
-    public function create(array $data): JournalEntry;
-    public function update(JournalEntry $entry, array $data): bool;
-    public function delete(JournalEntry $entry): bool;
-} 
+    public function find(string $id): ?AccountancyJournalEntry;
+    public function create(array $data): AccountancyJournalEntry;
+    public function update(AccountancyJournalEntry $entry, array $data): bool;
+    public function delete(AccountancyJournalEntry $entry): bool;
+}

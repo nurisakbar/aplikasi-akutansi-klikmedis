@@ -19,12 +19,12 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
-            'company_id' => $this->company_id,
-            'company' => $this->whenLoaded('company', function () {
+            'company_id' => $this->accountancy_company_id,
+            'company' => $this->whenLoaded('accountancyCompany', function () {
                 return [
-                    'id' => $this->company->id,
-                    'name' => $this->company->name,
-                    'email' => $this->company->email,
+                    'id' => $this->accountancyCompany->id,
+                    'name' => $this->accountancyCompany->name,
+                    'email' => $this->accountancyCompany->email,
                 ];
             }),
             'created_at' => $this->created_at,

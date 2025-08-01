@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Models\ChartOfAccount;
+use App\Models\AccountancyChartOfAccount;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -10,7 +10,7 @@ class ChartOfAccountRepository
 {
     protected $model;
 
-    public function __construct(ChartOfAccount $model)
+    public function __construct(AccountancyChartOfAccount $model)
     {
         $this->model = $model;
     }
@@ -18,23 +18,23 @@ class ChartOfAccountRepository
     /**
      * Get all accounts
      */
-    public function all(string $settingId): Collection
+    public function all(string $companyId): Collection
     {
-        return $this->model->getBySettingId($settingId)->get();
+        return $this->model->getByCompanyId($companyId)->get();
     }
 
     /**
      * Get paginated accounts
      */
-    public function paginate(string $settingId, int $perPage = 15): LengthAwarePaginator
+    public function paginate(string $companyId, int $perPage = 15): LengthAwarePaginator
     {
-        return $this->model->getBySettingId($settingId)->paginate($perPage);
+        return $this->model->getByCompanyId($companyId)->paginate($perPage);
     }
 
     /**
      * Find account by ID
      */
-    public function find(string $id): ?ChartOfAccount
+    public function find(string $id): ?AccountancyChartOfAccount
     {
         return $this->model->find($id);
     }
@@ -42,7 +42,7 @@ class ChartOfAccountRepository
     /**
      * Create new account
      */
-    public function create(array $data): ChartOfAccount
+    public function create(array $data): AccountancyChartOfAccount
     {
         return $this->model->create($data);
     }
@@ -50,7 +50,7 @@ class ChartOfAccountRepository
     /**
      * Update account
      */
-    public function update(ChartOfAccount $account, array $data): bool
+    public function update(AccountancyChartOfAccount $account, array $data): bool
     {
         return $account->update($data);
     }
@@ -58,7 +58,7 @@ class ChartOfAccountRepository
     /**
      * Delete account
      */
-    public function delete(ChartOfAccount $account): bool
+    public function delete(AccountancyChartOfAccount $account): bool
     {
         return $account->delete();
     }
@@ -66,9 +66,9 @@ class ChartOfAccountRepository
     /**
      * Get root accounts
      */
-    public function getRootAccounts(string $settingId): Collection
+    public function getRootAccounts(string $companyId): Collection
     {
-        return $this->model->getBySettingId($settingId)
+        return $this->model->getByCompanyId($companyId)
             ->whereNull('parent_id')
             ->get();
     }
@@ -76,9 +76,9 @@ class ChartOfAccountRepository
     /**
      * Get accounts by type
      */
-    public function getByType(string $settingId, string $type): Collection
+    public function getByType(string $companyId, string $type): Collection
     {
-        return $this->model->getBySettingId($settingId)
+        return $this->model->getByCompanyId($companyId)
             ->where('type', $type)
             ->get();
     }
@@ -86,9 +86,9 @@ class ChartOfAccountRepository
     /**
      * Get accounts by category
      */
-    public function getByCategory(string $settingId, string $category): Collection
+    public function getByCategory(string $companyId, string $category): Collection
     {
-        return $this->model->getBySettingId($settingId)
+        return $this->model->getByCompanyId($companyId)
             ->where('category', $category)
             ->get();
     }
@@ -96,10 +96,10 @@ class ChartOfAccountRepository
     /**
      * Get active accounts
      */
-    public function getActive(string $settingId): Collection
+    public function getActive(string $companyId): Collection
     {
-        return $this->model->getBySettingId($settingId)
+        return $this->model->getByCompanyId($companyId)
             ->where('is_active', true)
             ->get();
     }
-} 
+}

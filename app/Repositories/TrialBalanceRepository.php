@@ -3,38 +3,38 @@
 namespace App\Repositories;
 
 use App\Repositories\Interfaces\TrialBalanceRepositoryInterface;
-use App\Models\ChartOfAccount;
-use App\Models\JournalEntryLine;
+use App\Models\AccountancyChartOfAccount;
+use App\Models\AccountancyJournalEntryLine;
 use Illuminate\Support\Collection;
 
 class TrialBalanceRepository implements TrialBalanceRepositoryInterface
 {
     public function getTrialBalanceData(?string $dateFrom = null, ?string $dateTo = null, ?string $status = null): Collection
     {
-        $accounts = ChartOfAccount::orderBy('code')->get();
+        $accounts = AccountancyChartOfAccount::orderBy('code')->get();
         $result = collect();
         foreach ($accounts as $account) {
             // Saldo awal
-            $openingDebit = JournalEntryLine::where('chart_of_account_id', $account->id)
-                ->whereHas('journalEntry', function($q) use ($status, $dateFrom) {
+            $openingDebit = AccountancyJournalEntryLine::where('chart_of_account_id', $account->id)
+                ->whereHas('accountancyJournalEntry', function($q) use ($status, $dateFrom) {
                     $q->where('status', $status ?? 'posted');
                     if ($dateFrom) $q->where('date', '<', $dateFrom);
                 })->sum('debit');
-            $openingCredit = JournalEntryLine::where('chart_of_account_id', $account->id)
-                ->whereHas('journalEntry', function($q) use ($status, $dateFrom) {
+            $openingCredit = AccountancyJournalEntryLine::where('chart_of_account_id', $account->id)
+                ->whereHas('accountancyJournalEntry', function($q) use ($status, $dateFrom) {
                     $q->where('status', $status ?? 'posted');
                     if ($dateFrom) $q->where('date', '<', $dateFrom);
                 })->sum('credit');
             $opening = $openingDebit - $openingCredit;
             // Mutasi periode
-            $mutasiDebit = JournalEntryLine::where('chart_of_account_id', $account->id)
-                ->whereHas('journalEntry', function($q) use ($status, $dateFrom, $dateTo) {
+            $mutasiDebit = AccountancyJournalEntryLine::where('chart_of_account_id', $account->id)
+                ->whereHas('accountancyJournalEntry', function($q) use ($status, $dateFrom, $dateTo) {
                     $q->where('status', $status ?? 'posted');
                     if ($dateFrom) $q->where('date', '>=', $dateFrom);
                     if ($dateTo) $q->where('date', '<=', $dateTo);
                 })->sum('debit');
-            $mutasiCredit = JournalEntryLine::where('chart_of_account_id', $account->id)
-                ->whereHas('journalEntry', function($q) use ($status, $dateFrom, $dateTo) {
+            $mutasiCredit = AccountancyJournalEntryLine::where('chart_of_account_id', $account->id)
+                ->whereHas('accountancyJournalEntry', function($q) use ($status, $dateFrom, $dateTo) {
                     $q->where('status', $status ?? 'posted');
                     if ($dateFrom) $q->where('date', '>=', $dateFrom);
                     if ($dateTo) $q->where('date', '<=', $dateTo);
@@ -50,4 +50,4 @@ class TrialBalanceRepository implements TrialBalanceRepositoryInterface
         }
         return $result;
     }
-} 
+}

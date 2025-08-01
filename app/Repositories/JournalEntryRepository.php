@@ -2,34 +2,34 @@
 
 namespace App\Repositories;
 
-use App\Models\JournalEntry;
-use App\Repositories\Interfaces\JournalEntryRepositoryInterface;
+use App\Models\AccountancyJournalEntry;
+use App\Repositories\Interfaces\AccountancyJournalEntryRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
-class JournalEntryRepository implements JournalEntryRepositoryInterface
+class AccountancyJournalEntryRepository implements AccountancyJournalEntryRepositoryInterface
 {
     public function all(): Collection
     {
-        return JournalEntry::with('lines')->orderByDesc('date')->get();
+        return AccountancyJournalEntry::with('accountancyJournalEntryLines')->orderByDesc('date')->get();
     }
 
-    public function find(string $id): ?JournalEntry
+    public function find(string $id): ?AccountancyJournalEntry
     {
-        return JournalEntry::with('lines')->find($id);
+        return AccountancyJournalEntry::with('accountancyJournalEntryLines')->find($id);
     }
 
-    public function create(array $data): JournalEntry
+    public function create(array $data): AccountancyJournalEntry
     {
-        return JournalEntry::create($data);
+        return AccountancyJournalEntry::create($data);
     }
 
-    public function update(JournalEntry $entry, array $data): bool
+    public function update(AccountancyJournalEntry $entry, array $data): bool
     {
         return $entry->update($data);
     }
 
-    public function delete(JournalEntry $entry): bool
+    public function delete(AccountancyJournalEntry $entry): bool
     {
         return $entry->delete();
     }
-} 
+}

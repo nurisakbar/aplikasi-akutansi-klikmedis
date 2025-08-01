@@ -3,19 +3,19 @@
 namespace App\Repositories;
 
 use App\Repositories\Interfaces\FixedAssetRepositoryInterface;
-use App\Models\FixedAsset;
+use App\Models\AccountancyFixedAsset;
 use Illuminate\Support\Collection;
 
 class FixedAssetRepository implements FixedAssetRepositoryInterface
 {
     public function all(): Collection
     {
-        return FixedAsset::orderBy('acquisition_date', 'desc')->get();
+        return AccountancyFixedAsset::orderBy('acquisition_date', 'desc')->get();
     }
 
     public function filter(array $filter): Collection
     {
-        $query = FixedAsset::query();
+        $query = AccountancyFixedAsset::query();
         if (!empty($filter['category'])) $query->where('category', $filter['category']);
         if (!empty($filter['name'])) $query->where('name', 'like', '%'.$filter['name'].'%');
         if (!empty($filter['acquisition_date_from'])) $query->where('acquisition_date', '>=', $filter['acquisition_date_from']);
@@ -25,24 +25,24 @@ class FixedAssetRepository implements FixedAssetRepositoryInterface
 
     public function find(string $id)
     {
-        return FixedAsset::find($id);
+        return AccountancyFixedAsset::find($id);
     }
 
     public function create(array $data)
     {
-        return FixedAsset::create($data);
+        return AccountancyFixedAsset::create($data);
     }
 
     public function update(string $id, array $data)
     {
-        $asset = FixedAsset::findOrFail($id);
+        $asset = AccountancyFixedAsset::findOrFail($id);
         $asset->update($data);
         return $asset;
     }
 
     public function delete(string $id)
     {
-        $asset = FixedAsset::findOrFail($id);
+        $asset = AccountancyFixedAsset::findOrFail($id);
         return $asset->delete();
     }
-} 
+}

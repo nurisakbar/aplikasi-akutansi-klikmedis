@@ -3,8 +3,8 @@
 namespace App\Repositories;
 
 use App\Repositories\Interfaces\ProfitLossRepositoryInterface;
-use App\Models\ChartOfAccount;
-use App\Models\JournalEntryLine;
+use App\Models\AccountancyChartOfAccount;
+use App\Models\AccountancyJournalEntryLine;
 use Illuminate\Support\Collection;
 
 class ProfitLossRepository implements ProfitLossRepositoryInterface
@@ -17,21 +17,21 @@ class ProfitLossRepository implements ProfitLossRepositoryInterface
         ];
         $result = collect();
         foreach ($categories as $type => $catList) {
-            $accounts = ChartOfAccount::where('type', $type)
+            $accounts = AccountancyChartOfAccount::where('type', $type)
                 ->whereIn('category', $catList)
                 ->orderBy('code')
                 ->get();
             $accountsData = [];
             $total = 0;
             foreach ($accounts as $account) {
-                $debit = JournalEntryLine::where('chart_of_account_id', $account->id)
-                    ->whereHas('journalEntry', function($q) use ($status, $dateFrom, $dateTo) {
+                $debit = AccountancyJournalEntryLine::where('chart_of_account_id', $account->id)
+                    ->whereHas('accountancyJournalEntry', function($q) use ($status, $dateFrom, $dateTo) {
                         $q->where('status', $status ?? 'posted');
                         if ($dateFrom) $q->where('date', '>=', $dateFrom);
                         if ($dateTo) $q->where('date', '<=', $dateTo);
                     })->sum('debit');
-                $credit = JournalEntryLine::where('chart_of_account_id', $account->id)
-                    ->whereHas('journalEntry', function($q) use ($status, $dateFrom, $dateTo) {
+                $credit = AccountancyJournalEntryLine::where('chart_of_account_id', $account->id)
+                    ->whereHas('accountancyJournalEntry', function($q) use ($status, $dateFrom, $dateTo) {
                         $q->where('status', $status ?? 'posted');
                         if ($dateFrom) $q->where('date', '>=', $dateFrom);
                         if ($dateTo) $q->where('date', '<=', $dateTo);
@@ -51,4 +51,4 @@ class ProfitLossRepository implements ProfitLossRepositoryInterface
         }
         return $result;
     }
-} 
+}

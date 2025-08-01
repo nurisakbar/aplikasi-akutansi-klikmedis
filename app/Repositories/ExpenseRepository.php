@@ -3,19 +3,19 @@
 namespace App\Repositories;
 
 use App\Repositories\Interfaces\ExpenseRepositoryInterface;
-use App\Models\Expense;
+use App\Models\AccountancyExpense;
 use Illuminate\Support\Collection;
 
 class ExpenseRepository implements ExpenseRepositoryInterface
 {
     public function all(): Collection
     {
-        return Expense::orderBy('date', 'desc')->get();
+        return AccountancyExpense::orderBy('date', 'desc')->get();
     }
 
     public function filter(array $filter): Collection
     {
-        $query = Expense::query();
+        $query = AccountancyExpense::query();
         if (!empty($filter['type'])) {
             $type = trim($filter['type']);
             if ($type !== '') {
@@ -30,24 +30,24 @@ class ExpenseRepository implements ExpenseRepositoryInterface
 
     public function find(string $id)
     {
-        return Expense::find($id);
+        return AccountancyExpense::find($id);
     }
 
     public function create(array $data)
     {
-        return Expense::create($data);
+        return AccountancyExpense::create($data);
     }
 
     public function update(string $id, array $data)
     {
-        $expense = Expense::findOrFail($id);
+        $expense = AccountancyExpense::findOrFail($id);
         $expense->update($data);
         return $expense;
     }
 
     public function delete(string $id)
     {
-        $expense = Expense::findOrFail($id);
+        $expense = AccountancyExpense::findOrFail($id);
         return $expense->delete();
     }
-} 
+}

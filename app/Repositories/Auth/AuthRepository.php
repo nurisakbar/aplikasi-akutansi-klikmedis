@@ -3,7 +3,7 @@
 namespace App\Repositories\Auth;
 
 use App\Models\User;
-use App\Models\Company;
+use App\Models\AccountancyCompany;
 use Illuminate\Support\Facades\Hash;
 
 class AuthRepository implements AuthRepositoryInterface
@@ -14,8 +14,7 @@ class AuthRepository implements AuthRepositoryInterface
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'company_id' => $data['company_id'],
-            'role' => $data['role'] ?? 'admin',
+            'accountancy_company_id' => $data['company_id'],
         ]);
     }
 
@@ -26,7 +25,7 @@ class AuthRepository implements AuthRepositoryInterface
 
     public function createCompany(array $data)
     {
-        return Company::create([
+        return AccountancyCompany::create([
             'name' => $data['name'],
             'address' => $data['address'] ?? null,
             'province' => $data['province'] ?? null,

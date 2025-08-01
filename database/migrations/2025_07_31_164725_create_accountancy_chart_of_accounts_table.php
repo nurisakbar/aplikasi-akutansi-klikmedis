@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('accountancy_chart_of_accounts', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('company_id')->index();
+            $table->uuid('accountancy_company_id')->index();
             $table->string('code', 20)->index();
             $table->string('name', 100);
             $table->enum('type', ['asset', 'liability', 'equity', 'revenue', 'expense']);
@@ -33,8 +33,8 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->foreign('parent_id')->references('id')->on('accountancy_chart_of_accounts')->onDelete('restrict');
-            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
-            $table->unique(['company_id', 'code']);
+            $table->foreign('accountancy_company_id')->references('id')->on('accountancy_companies')->onDelete('cascade');
+            $table->unique(['accountancy_company_id', 'code']);
         });
     }
 

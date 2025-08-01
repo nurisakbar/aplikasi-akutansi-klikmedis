@@ -17,6 +17,10 @@ use App\Http\Controllers\TaxController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,20 +41,15 @@ use App\Http\Controllers\SupplierController;
 */
 
 Route::get('/', function () {
-    return redirect()->route('auth.login');
+    return redirect()->route('login');
 });
 
 // Auth Routes
-Route::prefix('auth')->group(function () {
-    Route::get('login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('auth.login');
-    Route::post('login', [App\Http\Controllers\Auth\LoginController::class, 'login'])->name('auth.login.post');
-    Route::get('register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegisterForm'])->name('auth.register');
-    Route::post('register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('auth.register.post');
-    Route::post('logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('auth.logout');
-});
-
-// Default logout route for AdminLTE compatibility
-Route::post('logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('logout');
+Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('login', [LoginController::class, 'login'])->name('login.post');
+Route::get('register', [RegisterController::class, 'showRegisterForm'])->name('register');
+Route::post('register', [RegisterController::class, 'register'])->name('register.post');
+Route::post('logout', [LogoutController::class, 'logout'])->name('logout');
 
 /*
 |--------------------------------------------------------------------------
@@ -62,8 +61,8 @@ Route::post('logout', [App\Http\Controllers\Auth\LogoutController::class, 'logou
 // Routes untuk semua user (termasuk superadmin)
 Route::middleware(['auth'])->group(function () {
     // Profile routes
-    Route::get('profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Chart of Accounts - accessible by all authenticated users
     Route::get('chart-of-accounts/export', [ChartOfAccountController::class, 'export'])->name('chart-of-accounts.export');
@@ -145,20 +144,20 @@ Route::resource('expenses', ExpenseController::class);
 */
 
 // Financial Reports - General Ledger (Buku Besar)
-Route::get('general-ledger', [App\Http\Controllers\GeneralLedgerController::class, 'index'])->name('general-ledger.index');
-Route::get('general-ledger/export', [App\Http\Controllers\GeneralLedgerController::class, 'export'])->name('general-ledger.export');
+Route::get('general-ledger', [GeneralLedgerController::class, 'index'])->name('general-ledger.index');
+Route::get('general-ledger/export', [GeneralLedgerController::class, 'export'])->name('general-ledger.export');
 
 // Financial Reports - Trial Balance (Neraca Saldo)
-Route::get('trial-balance', [App\Http\Controllers\TrialBalanceController::class, 'index'])->name('trial-balance.index');
-Route::get('trial-balance/export', [App\Http\Controllers\TrialBalanceController::class, 'export'])->name('trial-balance.export');
+Route::get('trial-balance', [TrialBalanceController::class, 'index'])->name('trial-balance.index');
+Route::get('trial-balance/export', [TrialBalanceController::class, 'export'])->name('trial-balance.export');
 
 // Financial Reports - Balance Sheet (Neraca)
-Route::get('balance-sheet', [App\Http\Controllers\BalanceSheetController::class, 'index'])->name('balance-sheet.index');
-Route::get('balance-sheet/export', [App\Http\Controllers\BalanceSheetController::class, 'export'])->name('balance-sheet.export');
+Route::get('balance-sheet', [BalanceSheetController::class, 'index'])->name('balance-sheet.index');
+Route::get('balance-sheet/export', [BalanceSheetController::class, 'export'])->name('balance-sheet.export');
 
 // Financial Reports - Profit & Loss (Laba Rugi)
-Route::get('profit-loss', [App\Http\Controllers\ProfitLossController::class, 'index'])->name('profit-loss.index');
-Route::get('profit-loss/export', [App\Http\Controllers\ProfitLossController::class, 'export'])->name('profit-loss.export');
+Route::get('profit-loss', [ProfitLossController::class, 'index'])->name('profit-loss.index');
+Route::get('profit-loss/export', [ProfitLossController::class, 'export'])->name('profit-loss.export');
 });
 
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\CashBankService;
 use App\Http\Requests\CashBankFilterRequest;
+use App\Http\Requests\StoreCashBankRequest;
 use Illuminate\Http\Request;
 use App\Exports\CashBankExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -44,7 +45,7 @@ class CashBankController extends Controller
         return view('cash_bank.create');
     }
 
-    public function store(\App\Http\Requests\StoreCashBankRequest $request)
+    public function store(StoreCashBankRequest $request)
     {
         $data = $request->validated();
         if ($request->hasFile('bukti')) {
@@ -53,4 +54,4 @@ class CashBankController extends Controller
         $this->service->createTransaction($data);
         return redirect()->route('cash-bank.index')->with('success', 'Transaksi kas/bank berhasil disimpan.');
     }
-} 
+}

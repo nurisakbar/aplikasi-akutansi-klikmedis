@@ -8,6 +8,7 @@ use App\Http\Requests\StoreChartOfAccountRequest;
 use App\Http\Requests\UpdateChartOfAccountRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Yajra\DataTables\Facades\DataTables;
@@ -88,31 +89,31 @@ class ChartOfAccountController extends Controller
             $query->with('parent');
 
             $datatable = DataTables::of($query)
-                ->addColumn('code_formatted', function (ChartOfAccount $account) {
+                ->addColumn('code_formatted', function (AccountancyChartOfAccount $account) {
                     return '<span class="badge badge-info">' . e($account->code) . '</span>';
                 })
-                ->addColumn('name_formatted', function (ChartOfAccount $account) {
+                ->addColumn('name_formatted', function (AccountancyChartOfAccount $account) {
                     $indent = '';
                     if ($account->level > 1) {
                         $indent = '<span style="margin-left: ' . (($account->level - 1) * 20) . 'px;">└─</span>';
                     }
                     return $indent . e($account->name);
                 })
-                ->addColumn('type_formatted', function (ChartOfAccount $account) {
+                ->addColumn('type_formatted', function (AccountancyChartOfAccount $account) {
                     return '<span class="badge badge-' . $account->type_badge_class . '">' . ucfirst($account->type) . '</span>';
                 })
-                ->addColumn('category_formatted', function (ChartOfAccount $account) {
+                ->addColumn('category_formatted', function (AccountancyChartOfAccount $account) {
                     return $account->formatted_category;
                 })
-                ->addColumn('parent_formatted', function (ChartOfAccount $account) {
+                ->addColumn('parent_formatted', function (AccountancyChartOfAccount $account) {
                     return $account->parent ? e($account->parent->full_name) : '-';
                 })
-                ->addColumn('status_formatted', function (ChartOfAccount $account) {
+                ->addColumn('status_formatted', function (AccountancyChartOfAccount $account) {
                     $badgeClass = $account->is_active ? 'success' : 'danger';
                     $status = $account->is_active ? 'Aktif' : 'Nonaktif';
                     return '<span class="badge badge-' . $badgeClass . '">' . $status . '</span>';
                 })
-                ->addColumn('actions', function (ChartOfAccount $account) {
+                ->addColumn('actions', function (AccountancyChartOfAccount $account) {
                     return view('chart_of_accounts.partials.actions', compact('account'))->render();
                 })
                 ->rawColumns(['code_formatted', 'name_formatted', 'type_formatted', 'status_formatted', 'actions'])
@@ -158,7 +159,7 @@ class ChartOfAccountController extends Controller
                 $globalCompany = AccountancyCompany::firstOrCreate(
                     ['name' => 'Global System'],
                     [
-                        'id' => (string) \Illuminate\Support\Str::uuid(),
+                        'id' => (string) Str::uuid(),
                         'email' => 'system@global.com',
                         'name' => 'Global System'
                     ]
@@ -233,7 +234,7 @@ class ChartOfAccountController extends Controller
     /**
      * Update the specified chart of account.
      */
-    public function update(UpdateChartOfAccountRequest $request, ChartOfAccount $chart_of_account): RedirectResponse|JsonResponse
+    public function update(UpdateChartOfAccountRequest $request, AccountancyChartOfAccount $chart_of_account): RedirectResponse|JsonResponse
     {
         try {
             $validated = $request->validated();
@@ -271,7 +272,7 @@ class ChartOfAccountController extends Controller
     /**
      * Remove the specified chart of account.
      */
-    public function destroy(ChartOfAccount $chart_of_account): JsonResponse
+    public function destroy(AccountancyChartOfAccount $chart_of_account): JsonResponse
     {
         try {
             if (!$chart_of_account->isLeaf()) {
@@ -306,9 +307,9 @@ class ChartOfAccountController extends Controller
     /**
      * Find chart of account by ID and company ID.
      *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     * @throws ModelNotFoundException
      */
-    private function findAccountOrFail(Request $request, string $id): ChartOfAccount
+    private function findAccountOrFail(Request $request, string $id): AccountancyChartOfAccount
     {
         $companyId = $this->getCompanyId();
         return AccountancyChartOfAccount::getByCompanyId($companyId)

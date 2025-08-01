@@ -20,7 +20,7 @@ Aplikasi sistem akuntansi berbasis Laravel dengan fitur multi-tenant dan role-ba
 - **Company Validation**: `EnsureUserHasCompany` untuk memastikan user memiliki company (kecuali superadmin)
 
 ### 3. CRUD Chart of Accounts (COA)
-- **Tabel**: `akuntansi_chart_of_accounts`
+- **Tabel**: `accountancy_chart_of_accounts`
 - **Fields**: id, company_id, code, name, type, category, parent_id, description, is_active, level, path
 - **AJAX Support**: Create/edit/delete menggunakan jQuery AJAX
 - **AdminLTE Template**: Interface menggunakan AdminLTE
@@ -33,7 +33,7 @@ Aplikasi sistem akuntansi berbasis Laravel dengan fitur multi-tenant dan role-ba
 ### Tabel Utama
 - `companies`: Data perusahaan
 - `users`: Data user dengan relasi ke company
-- `akuntansi_chart_of_accounts`: Chart of accounts dengan hierarki
+- `accountancy_chart_of_accounts`: Chart of accounts dengan hierarki
 - `roles`, `permissions`, `model_has_roles`, `model_has_permissions`: Tabel Spatie Permission
 
 ### Relasi

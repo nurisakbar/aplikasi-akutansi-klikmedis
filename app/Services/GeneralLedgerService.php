@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Repositories\Interfaces\GeneralLedgerRepositoryInterface;
-use App\Models\ChartOfAccount;
+use App\Models\AccountancyChartOfAccount;
 use Illuminate\Support\Collection;
 
 class GeneralLedgerService
@@ -20,7 +20,7 @@ class GeneralLedgerService
         ?string $dateTo = null,
         ?string $status = 'posted'
     ): array {
-        $account = ChartOfAccount::findOrFail($accountId);
+        $account = AccountancyChartOfAccount::findOrFail($accountId);
         $opening = $this->repository->getOpeningBalance($accountId, $dateFrom ?? '1900-01-01');
         $lines = $this->repository->getLedgerData($accountId, $dateFrom, $dateTo, $status);
         $mutasiDebit = $lines->sum('debit');
@@ -35,4 +35,4 @@ class GeneralLedgerService
             'closing' => $closing,
         ];
     }
-} 
+}

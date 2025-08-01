@@ -25,8 +25,8 @@ class AuthService implements AuthServiceInterface
             // Create company
             $company = $this->authRepository->createCompany($companyData);
 
-            // Create user with company_id
-            $userData['company_id'] = $company->id;
+                    // Create user with accountancy_company_id
+        $userData['company_id'] = $company->id;
             $user = $this->authRepository->createUser($userData);
 
             // Assign company-admin role

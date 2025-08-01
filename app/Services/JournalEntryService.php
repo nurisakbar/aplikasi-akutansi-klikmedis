@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\JournalEntry;
-use App\Models\JournalEntryLine;
-use App\Repositories\Interfaces\JournalEntryRepositoryInterface;
+use App\Models\AccountancyJournalEntry;
+use App\Models\AccountancyJournalEntryLine;
+use App\Repositories\Interfaces\AccountancyJournalEntryRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Arr;
@@ -13,12 +13,12 @@ class JournalEntryService
 {
     protected $repository;
 
-    public function __construct(JournalEntryRepositoryInterface $repository)
+    public function __construct(AccountancyJournalEntryRepositoryInterface $repository)
     {
         $this->repository = $repository;
     }
 
-    private function addHistory(JournalEntry $entry, string $action, array $changes = []): void
+    private function addHistory(AccountancyJournalEntry $entry, string $action, array $changes = []): void
     {
         $history = $entry->history ?? [];
         $history[] = [
@@ -31,7 +31,7 @@ class JournalEntryService
         $entry->save();
     }
 
-    public function create(array $data): JournalEntry
+    public function create(array $data): AccountancyJournalEntry
     {
         $lines = $data['lines'];
         $totalDebit = collect($lines)->sum('debit');
@@ -40,7 +40,7 @@ class JournalEntryService
             throw new \Exception('Total debit dan kredit harus seimbang.');
         }
         return DB::transaction(function () use ($data, $lines) {
-            $data['journal_number'] = \App\Models\JournalEntry::generateJournalNumber();
+            $data['journal_number'] = \App\Models\AccountancyJournalEntry::generateJournalNumber();
             $data['status'] = $data['status'] ?? 'draft';
             // Handle attachment
             if (isset($data['attachment']) && $data['attachment']) {
@@ -61,14 +61,14 @@ class JournalEntryService
                 'created_by' => Auth::id(),
             ]);
             foreach ($lines as $line) {
-                $entry->lines()->create($line);
+                $entry->accountancyJournalEntryLines()->create($line);
             }
             $this->addHistory($entry, 'create');
             return $entry;
         });
     }
 
-    public function update(JournalEntry $entry, array $data): JournalEntry
+    public function update(AccountancyJournalEntry $entry, array $data): AccountancyJournalEntry
     {
         if ($entry->isPosted()) {
             throw new \Exception('Jurnal yang sudah posted tidak bisa diedit.');
@@ -97,9 +97,9 @@ class JournalEntryService
                 'attachment' => $data['attachment'] ?? $entry->attachment,
                 'status' => $data['status'] ?? $entry->status,
             ]);
-            $entry->lines()->delete();
+            $entry->accountancyJournalEntryLines()->delete();
             foreach ($lines as $line) {
-                $entry->lines()->create($line);
+                $entry->accountancyJournalEntryLines()->create($line);
             }
             $new = $entry->fresh()->toArray();
             $changes = Arr::except(array_diff_assoc($new, $old), ['updated_at', 'history']);
@@ -108,7 +108,7 @@ class JournalEntryService
         });
     }
 
-    public function delete(JournalEntry $entry): bool
+    public function delete(AccountancyJournalEntry $entry): bool
     {
         if ($entry->isPosted()) {
             throw new \Exception('Jurnal yang sudah posted tidak bisa dihapus.');
@@ -116,7 +116,7 @@ class JournalEntryService
         return $this->repository->delete($entry);
     }
 
-    public function post(JournalEntry $entry): void
+    public function post(AccountancyJournalEntry $entry): void
     {
         if ($entry->isPosted()) {
             throw new \Exception('Jurnal sudah diposting.');
@@ -125,4 +125,4 @@ class JournalEntryService
         $entry->save();
         $this->addHistory($entry, 'post');
     }
-} 
+}

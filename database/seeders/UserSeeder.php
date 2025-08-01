@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Company;
+use App\Models\AccountancyCompany;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
         $companyAdminRole = Role::where('name', 'company-admin')->first();
 
         // Get companies
-        $companies = Company::all();
+        $companies = AccountancyCompany::all();
 
         if ($companies->count() > 0) {
             // Create company admin users for each company
@@ -30,9 +30,9 @@ class UserSeeder extends Seeder
                     'name' => 'Admin ' . $company->name,
                     'email' => 'admin@' . strtolower(str_replace(' ', '', $company->name)) . '.com',
                     'password' => Hash::make('password123'),
-                    'company_id' => $company->id,
+                    'accountancy_company_id' => $company->id,
                 ]);
-                
+
                 $user->assignRole($companyAdminRole);
             }
         }
@@ -43,9 +43,9 @@ class UserSeeder extends Seeder
                 'name' => 'Super Admin',
                 'email' => 'admin@klikmedis.com',
                 'password' => Hash::make('password123'),
-                'company_id' => null,
+                'accountancycompany_id' => null,
             ]);
-            
+
             $user->assignRole($superadminRole);
         }
     }

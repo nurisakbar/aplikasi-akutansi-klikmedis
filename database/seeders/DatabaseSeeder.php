@@ -14,15 +14,15 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleSeeder::class,
-            CompanySeeder::class,
+            AccountancyCompanySeeder::class,
             UserSeeder::class,
-            ChartOfAccountSeeder::class,
-            JournalEntrySeeder::class,
-            ExpenseSeeder::class,
-            TaxSeeder::class,
-            FixedAssetSeeder::class,
-            CustomerSeeder::class,
-            SupplierSeeder::class,
+            AccountancyChartOfAccountSeeder::class,
+            AccountancyExpenseSeeder::class,
+            AccountancyTaxSeeder::class,
+            AccountancyFixedAssetSeeder::class,
+            AccountancyCustomerSeeder::class,
+            AccountancySupplierSeeder::class,
+            AccountancyJournalEntrySeeder::class,
         ]);
     }
 }

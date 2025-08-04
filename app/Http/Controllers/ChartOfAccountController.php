@@ -40,7 +40,15 @@ class ChartOfAccountController extends Controller
      */
         private function getDataTableResponse(Request $request): JsonResponse
     {
-        $query = AccountancyChartOfAccount::with('parent');
+        // Ambil company_id berdasarkan user
+        $user = Auth::user();
+        $companyId = $user->hasRole('superadmin') 
+            ? AccountancyCompany::where('name', 'Global System')->first()?->id 
+            : $user->accountancy_company_id;
+        
+        $query = AccountancyChartOfAccount::with('parent')
+            ->where('accountancy_company_id', $companyId)
+            ->orderBy('path', 'asc'); // Urutkan berdasarkan path untuk hierarki yang benar
 
         $datatable = DataTables::of($query)
             ->addColumn('code_formatted', function (AccountancyChartOfAccount $account) {
@@ -49,7 +57,7 @@ class ChartOfAccountController extends Controller
             ->addColumn('name_formatted', function (AccountancyChartOfAccount $account) {
                 $indent = '';
                 if ($account->level > 1) {
-                    $indent = '<span style="margin-left: ' . (($account->level - 1) * 20) . 'px;">└─</span>';
+                    $indent = '<span style="margin-left: ' . (($account->level - 1) * 25) . 'px;">└─</span>';
                 }
                 return $indent . e($account->name);
             })
@@ -81,8 +89,15 @@ class ChartOfAccountController extends Controller
      */
     public function create()
     {
+        // Ambil company_id berdasarkan user
+        $user = Auth::user();
+        $companyId = $user->hasRole('superadmin') 
+            ? AccountancyCompany::where('name', 'Global System')->first()?->id 
+            : $user->accountancy_company_id;
+        
         $parentAccounts = AccountancyChartOfAccount::active()
-            ->orderBy('code')
+            ->where('accountancy_company_id', $companyId)
+            ->orderBy('path', 'asc') // Urutkan berdasarkan hierarki
             ->get();
 
         return view('chart_of_accounts.create', compact('parentAccounts'));
@@ -163,9 +178,16 @@ class ChartOfAccountController extends Controller
             return response()->json($chart_of_account);
         }
 
+        // Ambil company_id berdasarkan user
+        $user = Auth::user();
+        $companyId = $user->hasRole('superadmin') 
+            ? AccountancyCompany::where('name', 'Global System')->first()?->id 
+            : $user->accountancy_company_id;
+
         $parentAccounts = AccountancyChartOfAccount::where('id', '!=', $chart_of_account->id)
+            ->where('accountancy_company_id', $companyId)
             ->active()
-            ->orderBy('code')
+            ->orderBy('path', 'asc') // Urutkan berdasarkan hierarki
             ->get();
 
         return view('chart_of_accounts.edit', compact('chart_of_account', 'parentAccounts'));
@@ -245,6 +267,26 @@ class ChartOfAccountController extends Controller
     }
 
     /**
+     * Fix hierarchy for current company's chart of accounts.
+     */
+    public function fixHierarchy(): JsonResponse
+    {
+        try {
+            $this->ensureAllPathsAreUpdated();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Hierarki Chart of Accounts berhasil diperbaiki.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Get account types and categories for AJAX request.
      */
     public function getAccountTypesAndCategories(): JsonResponse
@@ -281,6 +323,44 @@ class ChartOfAccountController extends Controller
             'categories' => $categories,
             'categoriesByType' => $categoriesByType
         ]);
+    }
+
+    /**
+     * Memastikan semua akun memiliki path yang benar
+     */
+    private function ensureAllPathsAreUpdated(): void
+    {
+        // Ambil company_id berdasarkan user
+        $user = Auth::user();
+        $companyId = $user->hasRole('superadmin') 
+            ? AccountancyCompany::where('name', 'Global System')->first()?->id 
+            : $user->accountancy_company_id;
+        
+        // Ambil semua akun root terlebih dahulu
+        $rootAccounts = AccountancyChartOfAccount::whereNull('parent_id')
+            ->where('accountancy_company_id', $companyId)
+            ->get();
+        
+        foreach ($rootAccounts as $rootAccount) {
+            $this->updateAccountPathRecursively($rootAccount);
+        }
+    }
+
+    /**
+     * Update path secara rekursif untuk akun dan semua child-nya
+     */
+    private function updateAccountPathRecursively(AccountancyChartOfAccount $account): void
+    {
+        // Update path untuk akun ini
+        $account->updatePath();
+        
+        // Update path untuk semua child (hanya dari company yang sama)
+        $children = AccountancyChartOfAccount::where('parent_id', $account->id)
+            ->where('accountancy_company_id', $account->accountancy_company_id)
+            ->get();
+        foreach ($children as $child) {
+            $this->updateAccountPathRecursively($child);
+        }
     }
 
     /**

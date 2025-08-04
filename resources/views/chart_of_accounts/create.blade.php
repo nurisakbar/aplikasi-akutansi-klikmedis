@@ -58,8 +58,14 @@
                             <select class="form-control" id="parent_id" name="parent_id">
                                 <option value="">Pilih Parent (Opsional)</option>
                                 @foreach($parentAccounts as $account)
+                                    @php
+                                        $indent = '';
+                                        if ($account->level > 1) {
+                                            $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $account->level - 1) . '└─ ';
+                                        }
+                                    @endphp
                                     <option value="{{ $account->id }}" {{ old('parent_id') == $account->id ? 'selected' : '' }}>
-                                        {{ $account->code }} - {{ $account->name }}
+                                        {!! $indent !!}{{ $account->code }} - {{ $account->name }}
                                     </option>
                                 @endforeach
                             </select>

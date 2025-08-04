@@ -17,10 +17,10 @@ class AccountancyChartOfAccountSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get the first company (or create a default one if none exists)
-        $company = AccountancyCompany::first();
+        // Get all companies
+        $companies = AccountancyCompany::all();
 
-        if (!$company) {
+        if ($companies->count() === 0) {
             $this->command->warn('No companies found. Creating a default company first.');
             $company = AccountancyCompany::create([
                 'id' => (string) Str::uuid(),
@@ -33,11 +33,12 @@ class AccountancyChartOfAccountSeeder extends Seeder
                 'postal_code' => '12345',
                 'phone' => '0123456789',
             ]);
+            $companies = collect([$company]);
         }
 
-        $this->command->info('Creating Chart of Accounts for: ' . $company->name);
+        $this->command->info('Creating Chart of Accounts for ' . $companies->count() . ' companies');
 
-        // Create basic Chart of Accounts
+        // Create basic Chart of Accounts for each company
         $accounts = [
             [
                 'code' => '1000',
@@ -97,33 +98,37 @@ class AccountancyChartOfAccountSeeder extends Seeder
             ]
         ];
 
-        foreach ($accounts as $accountData) {
-            $account = AccountancyChartOfAccount::firstOrCreate(
-                [
-                    'code' => $accountData['code'],
-                    'accountancy_company_id' => $company->id
-                ],
-                [
-                    'id' => (string) Str::uuid(),
-                    'accountancy_company_id' => $company->id,
-                    'code' => $accountData['code'],
-                    'name' => $accountData['name'],
-                    'type' => $accountData['type'],
-                    'category' => $accountData['category'],
-                    'description' => $accountData['description'],
-                    'is_active' => true,
-                    'level' => 1,
-                    'path' => null,
-                    'parent_id' => null
-                ]
-            );
+        foreach ($companies as $company) {
+            $this->command->info('Creating Chart of Accounts for: ' . $company->name);
 
-            // Update the path for this account
-            $account->updatePath();
+            foreach ($accounts as $accountData) {
+                $account = AccountancyChartOfAccount::firstOrCreate(
+                    [
+                        'code' => $accountData['code'],
+                        'accountancy_company_id' => $company->id
+                    ],
+                    [
+                        'id' => (string) Str::uuid(),
+                        'accountancy_company_id' => $company->id,
+                        'code' => $accountData['code'],
+                        'name' => $accountData['name'],
+                        'type' => $accountData['type'],
+                        'category' => $accountData['category'],
+                        'description' => $accountData['description'],
+                        'is_active' => true,
+                        'level' => 1,
+                        'path' => null,
+                        'parent_id' => null
+                    ]
+                );
 
-            $this->command->info('Created COA: ' . $account->code . ' - ' . $account->name);
+                // Update the path for this account
+                $account->updatePath();
+
+                $this->command->info('Created COA: ' . $account->code . ' - ' . $account->name);
+            }
         }
 
-        $this->command->info('Chart of Accounts seeding completed! Created ' . count($accounts) . ' accounts.');
+        $this->command->info('Chart of Accounts seeding completed! Created ' . (count($accounts) * $companies->count()) . ' accounts across ' . $companies->count() . ' companies.');
     }
 }

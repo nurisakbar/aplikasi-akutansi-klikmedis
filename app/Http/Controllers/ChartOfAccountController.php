@@ -135,8 +135,14 @@ class ChartOfAccountController extends Controller
     public function create(Request $request): View
     {
         $companyId = $this->getCompanyId();
-        $parentAccounts = AccountancyChartOfAccount::getByCompanyId($companyId)
-            ->active()
+        $query = AccountancyChartOfAccount::query();
+        
+        // Filter by company_id if not superadmin
+        if ($companyId) {
+            $query->getByCompanyId($companyId);
+        }
+        
+        $parentAccounts = $query->active()
             ->orderBy('code')
             ->get();
 
@@ -222,8 +228,14 @@ class ChartOfAccountController extends Controller
             return response()->json($account);
         }
 
-        $parentAccounts = AccountancyChartOfAccount::getByCompanyId($companyId)
-            ->where('id', '!=', $id)
+        $query = AccountancyChartOfAccount::query();
+        
+        // Filter by company_id if not superadmin
+        if ($companyId) {
+            $query->getByCompanyId($companyId);
+        }
+        
+        $parentAccounts = $query->where('id', '!=', $id)
             ->active()
             ->orderBy('code')
             ->get();
@@ -312,8 +324,13 @@ class ChartOfAccountController extends Controller
     private function findAccountOrFail(Request $request, string $id): AccountancyChartOfAccount
     {
         $companyId = $this->getCompanyId();
-        return AccountancyChartOfAccount::getByCompanyId($companyId)
-            ->where('id', $id)
-            ->firstOrFail();
+        $query = AccountancyChartOfAccount::query();
+        
+        // Filter by company_id if not superadmin
+        if ($companyId) {
+            $query->getByCompanyId($companyId);
+        }
+        
+        return $query->where('id', $id)->firstOrFail();
     }
 }

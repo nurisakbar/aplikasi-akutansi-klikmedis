@@ -24,8 +24,8 @@ class EnsureUserHasCompany
                 return $next($request);
             }
 
-                    // User lain harus memiliki accountancy_company_id
-        if (!$user->accountancy_company_id) {
+            // User lain harus memiliki accountancy_company_id
+            if (!$user->accountancy_company_id) {
                 Auth::logout();
                 return redirect()->route('login')
                     ->with('error', 'Akun Anda tidak terkait dengan perusahaan manapun. Silakan hubungi administrator.');

@@ -42,8 +42,9 @@ class LoginController extends Controller
                     return response()->json([
                         'success' => true,
                         'message' => $result['message'] ?? 'Login berhasil',
-                        'redirect' => $this->getRedirectUrl()
-                    ]);
+                        'redirect' => $this->getRedirectUrl(),
+                        'token' => $result['token'] ?? null
+                    ])->withCookie('auth_token', $result['token'] ?? null, 60 * 24 * 7); // 7 days
                 } else {
                     return response()->json([
                         'success' => false,

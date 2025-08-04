@@ -54,9 +54,15 @@ class AuthService implements AuthServiceInterface
     public function login(array $credentials)
     {
         if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+            
+            // Create Sanctum token for the user
+            $token = $user->createToken('web-token')->plainTextToken;
+            
             return [
                 'success' => true,
-                'user' => Auth::user()
+                'user' => $user,
+                'token' => $token
             ];
         }
 
@@ -68,7 +74,15 @@ class AuthService implements AuthServiceInterface
 
     public function logout()
     {
+        $user = Auth::user();
+        
+        if ($user) {
+            // Revoke all tokens for the user
+            $user->tokens()->delete();
+        }
+        
         Auth::logout();
+        
         return [
             'success' => true,
             'message' => 'Berhasil logout'

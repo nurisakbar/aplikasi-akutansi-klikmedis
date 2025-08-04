@@ -1,0 +1,240 @@
+{
+    "processing": "Memproses...",
+    "search": "Cari:",
+    "lengthMenu": "Tampilkan _MENU_ data",
+    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+    "infoEmpty": "Menampilkan 0 sampai 0 dari 0 data",
+    "infoFiltered": "(disaring dari _MAX_ total data)",
+    "loadingRecords": "Memuat...",
+    "zeroRecords": "Tidak ada data yang ditemukan",
+    "emptyTable": "Tidak ada data yang tersedia",
+    "paginate": {
+        "first": "Pertama",
+        "previous": "Sebelumnya",
+        "next": "Selanjutnya",
+        "last": "Terakhir"
+    },
+    "aria": {
+        "sortAscending": ": aktifkan untuk mengurutkan kolom naik",
+        "sortDescending": ": aktifkan untuk mengurutkan kolom turun"
+    },
+    "buttons": {
+        "copy": "Salin",
+        "colvis": "Kolom",
+        "collection": "Koleksi",
+        "colvisRestore": "Kembalikan visibilitas",
+        "copyKeys": "Tekan ctrl atau u2318 + C untuk menyalin tabel ke clipboard.<br><br>Untuk membatalkan, klik pesan ini atau tekan ESC.",
+        "copySuccess": {
+            "1": "1 baris disalin ke clipboard",
+            "_": "%d baris disalin ke clipboard"
+        },
+        "copyTitle": "Salin ke clipboard",
+        "csv": "CSV",
+        "excel": "Excel",
+        "pageLength": {
+            "-1": "Tampilkan semua baris",
+            "_": "Tampilkan %d baris"
+        },
+        "pdf": "PDF",
+        "print": "Cetak",
+        "renameState": "Ubah nama",
+        "updateState": "Perbarui",
+        "createState": "Buat state baru",
+        "removeAllStates": "Hapus semua state",
+        "removeState": "Hapus",
+        "savedStates": "State tersimpan",
+        "stateRestore": "State %d"
+    },
+    "autoFill": {
+        "cancel": "Batal",
+        "fill": "Isi semua sel dengan <i>%d<\/i>",
+        "fillHorizontal": "Isi sel secara horizontal",
+        "fillVertical": "Isi sel secara vertikal"
+    },
+    "searchBuilder": {
+        "add": "Tambah Kondisi",
+        "button": {
+            "_": "Search Builder (%d)",
+            "0": "Search Builder"
+        },
+        "clearAll": "Hapus Semua",
+        "condition": "Kondisi",
+        "data": "Data",
+        "deleteTitle": "Hapus filter",
+        "leftTitle": "Kriteria Kiri",
+        "logicAnd": "Dan",
+        "logicOr": "Atau",
+        "rightTitle": "Kriteria Kanan",
+        "title": {
+            "_": "Search Builder (%d)",
+            "0": "Search Builder"
+        },
+        "value": "Nilai",
+        "conditions": {
+            "date": {
+                "after": "Setelah",
+                "before": "Sebelum",
+                "between": "Antara",
+                "empty": "Kosong",
+                "equals": "Sama dengan",
+                "not": "Tidak",
+                "notBetween": "Tidak antara",
+                "notEmpty": "Tidak kosong"
+            },
+            "number": {
+                "between": "Antara",
+                "empty": "Kosong",
+                "equals": "Sama dengan",
+                "gt": "Lebih besar dari",
+                "gte": "Lebih besar atau sama dengan",
+                "lt": "Kurang dari",
+                "lte": "Kurang dari atau sama dengan",
+                "not": "Tidak",
+                "notBetween": "Tidak antara",
+                "notEmpty": "Tidak kosong"
+            },
+            "string": {
+                "contains": "Berisi",
+                "empty": "Kosong",
+                "endsWith": "Berakhir dengan",
+                "equals": "Sama dengan",
+                "not": "Tidak",
+                "notEmpty": "Tidak kosong",
+                "startsWith": "Dimulai dengan"
+            },
+            "array": {
+                "contains": "Berisi",
+                "empty": "Kosong",
+                "equals": "Sama dengan",
+                "not": "Tidak",
+                "notEmpty": "Tidak kosong",
+                "without": "Tanpa"
+            }
+        }
+    },
+    "searchPanes": {
+        "clearMessage": "Hapus Semua",
+        "collapse": {
+            "_": "SearchPanes Collapse (%d)",
+            "0": "SearchPanes Collapse"
+        },
+        "count": "{total}",
+        "countFiltered": "{shown} ({total})",
+        "emptyPanes": "Tidak ada SearchPanes",
+        "loadMessage": "Memuat SearchPanes...",
+        "title": "Filter Aktif - %d",
+        "showMessage": "Tampilkan Semua",
+        "collapseMessage": "Ciutkan Semua"
+    },
+    "select": {
+        "cells": {
+            "_": "%d sel dipilih",
+            "0": "Klik sel untuk memilih"
+        },
+        "columns": {
+            "_": "%d kolom dipilih",
+            "0": "Klik kolom untuk memilih"
+        },
+        "rows": {
+            "_": "%d baris dipilih",
+            "0": "Klik baris untuk memilih"
+        }
+    },
+    "thousands": ".",
+    "datetime": {
+        "previous": "Sebelumnya",
+        "next": "Selanjutnya",
+        "hours": "Jam",
+        "minutes": "Menit",
+        "seconds": "Detik",
+        "unknown": "-",
+        "amPm": [
+            "am",
+            "pm"
+        ],
+        "months": {
+            "0": "Januari",
+            "1": "Februari",
+            "10": "November",
+            "11": "Desember",
+            "2": "Maret",
+            "3": "April",
+            "4": "Mei",
+            "5": "Juni",
+            "6": "Juli",
+            "7": "Agustus",
+            "8": "September",
+            "9": "Oktober"
+        },
+        "weekdays": [
+            "Minggu",
+            "Senin",
+            "Selasa",
+            "Rabu",
+            "Kamis",
+            "Jumat",
+            "Sabtu"
+        ]
+    },
+    "editor": {
+        "close": "Tutup",
+        "create": {
+            "button": "Tambah",
+            "submit": "Tambah",
+            "title": "Tambah record baru"
+        },
+        "edit": {
+            "button": "Edit",
+            "submit": "Perbarui",
+            "title": "Edit record"
+        },
+        "remove": {
+            "button": "Hapus",
+            "submit": "Hapus",
+            "confirm": {
+                "_": "Apakah Anda yakin ingin menghapus %d baris?",
+                "1": "Apakah Anda yakin ingin menghapus 1 baris?"
+            },
+            "title": "Hapus record"
+        },
+        "error": {
+            "system": "Terjadi kesalahan sistem (<a target=\"\\\" rel=\"\\\" href=\"\\\">Informasi lebih lanjut<\/a>)."
+        },
+        "multi": {
+            "info": "Baris yang dipilih berisi nilai yang berbeda untuk input ini. Untuk mengedit dan mengatur semua baris untuk input ini ke nilai yang sama, klik atau tekan di sini, jika tidak maka akan mempertahankan nilai individual mereka.",
+            "noMulti": "Input ini dapat diedit secara individual, tetapi bukan sebagai bagian dari grup.",
+            "restore": "Batalkan perubahan",
+            "title": "Nilai ganda"
+        }
+    },
+    "stateRestore": {
+        "creationModal": {
+            "button": "Buat",
+            "cancel": "Batal",
+            "columns": {
+                "_": "Kolom: %d",
+                "0": "Kolom"
+            },
+            "name": "Nama:",
+            "order": "Urutan",
+            "paging": "Paging",
+            "scroller": "Scroller",
+            "search": "Pencarian",
+            "searchBuilder": "SearchBuilder",
+            "select": "Pilih",
+            "title": "Buat State Baru",
+            "toggleLabel": "Termasuk:"
+        },
+        "duplicateError": "State dengan nama ini sudah ada.",
+        "emptyError": "Nama tidak boleh kosong.",
+        "emptyStates": "Tidak ada state tersimpan",
+        "removeConfirm": "Apakah Anda yakin ingin menghapus %s?",
+        "removeError": "Gagal menghapus state.",
+        "removeJoiner": "dan",
+        "removeSubmit": "Hapus",
+        "removeTitle": "Hapus State",
+        "renameButton": "Ubah Nama",
+        "renameLabel": "Nama baru untuk %s:",
+        "renameTitle": "Ubah Nama State"
+    }
+} 

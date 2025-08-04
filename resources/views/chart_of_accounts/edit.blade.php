@@ -9,116 +9,82 @@
             <h3 class="card-title">Edit Akun</h3>
         </div>
         <div class="card-body">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('chart-of-accounts.update', $account->id) }}" method="POST">
+            <form id="editAccountForm">
                 @csrf
                 @method('PUT')
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Kode Akun <span class="text-danger">*</span></label>
-                            <input type="text" name="code" class="form-control @error('code') is-invalid @enderror" 
-                                   value="{{ old('code', $account->code) }}" required maxlength="20">
-                            @error('code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Nama Akun <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
-                                   value="{{ old('name', $account->name) }}" required maxlength="100">
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label>Tipe Akun <span class="text-danger">*</span></label>
-                            <select name="type" class="form-control @error('type') is-invalid @enderror" required>
-                                <option value="">Pilih Tipe</option>
-                                <option value="asset" {{ old('type', $account->type) == 'asset' ? 'selected' : '' }}>Asset</option>
-                                <option value="liability" {{ old('type', $account->type) == 'liability' ? 'selected' : '' }}>Liability</option>
-                                <option value="equity" {{ old('type', $account->type) == 'equity' ? 'selected' : '' }}>Equity</option>
-                                <option value="revenue" {{ old('type', $account->type) == 'revenue' ? 'selected' : '' }}>Revenue</option>
-                                <option value="expense" {{ old('type', $account->type) == 'expense' ? 'selected' : '' }}>Expense</option>
-                            </select>
-                            @error('type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label for="code">Kode <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" 
+                                   id="code" name="code" value="{{ $chart_of_account->code }}" required maxlength="20">
+                            <div class="invalid-feedback" id="code-error"></div>
                         </div>
                     </div>
-
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label>Kategori <span class="text-danger">*</span></label>
-                            <select name="category" class="form-control @error('category') is-invalid @enderror" required>
-                                <option value="">Pilih Kategori</option>
-                                <optgroup label="Asset">
-                                    <option value="current_asset" {{ old('category', $account->category) == 'current_asset' ? 'selected' : '' }}>Current Asset</option>
-                                    <option value="fixed_asset" {{ old('category', $account->category) == 'fixed_asset' ? 'selected' : '' }}>Fixed Asset</option>
-                                    <option value="other_asset" {{ old('category', $account->category) == 'other_asset' ? 'selected' : '' }}>Other Asset</option>
-                                </optgroup>
-                                <optgroup label="Liability">
-                                    <option value="current_liability" {{ old('category', $account->category) == 'current_liability' ? 'selected' : '' }}>Current Liability</option>
-                                    <option value="long_term_liability" {{ old('category', $account->category) == 'long_term_liability' ? 'selected' : '' }}>Long Term Liability</option>
-                                </optgroup>
-                                <optgroup label="Equity">
-                                    <option value="equity" {{ old('category', $account->category) == 'equity' ? 'selected' : '' }}>Equity</option>
-                                </optgroup>
-                                <optgroup label="Revenue">
-                                    <option value="operating_revenue" {{ old('category', $account->category) == 'operating_revenue' ? 'selected' : '' }}>Operating Revenue</option>
-                                    <option value="other_revenue" {{ old('category', $account->category) == 'other_revenue' ? 'selected' : '' }}>Other Revenue</option>
-                                </optgroup>
-                                <optgroup label="Expense">
-                                    <option value="operating_expense" {{ old('category', $account->category) == 'operating_expense' ? 'selected' : '' }}>Operating Expense</option>
-                                    <option value="other_expense" {{ old('category', $account->category) == 'other_expense' ? 'selected' : '' }}>Other Expense</option>
-                                </optgroup>
-                            </select>
-                            @error('category')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <label for="name">Nama <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" 
+                                   id="name" name="name" value="{{ $chart_of_account->name }}" required maxlength="100">
+                            <div class="invalid-feedback" id="name-error"></div>
                         </div>
+                    </div>
+                </div>
 
+                <div class="row">
+                    <div class="col-md-6">
                         <div class="form-group">
-                            <label>Parent Akun</label>
-                            <select name="parent_id" class="form-control @error('parent_id') is-invalid @enderror">
-                                <option value="">Tidak Ada Parent (Root)</option>
+                            <label for="type">Tipe <span class="text-danger">*</span></label>
+                            <select class="form-control" id="type" name="type" required>
+                                <option value="">Pilih Tipe</option>
+                            </select>
+                            <div class="invalid-feedback" id="type-error"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="category">Kategori <span class="text-danger">*</span></label>
+                            <select class="form-control" id="category" name="category" required>
+                                <option value="">Pilih Kategori</option>
+                            </select>
+                            <div class="invalid-feedback" id="category-error"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="parent_id">Parent Akun</label>
+                            <select class="form-control" id="parent_id" name="parent_id">
+                                <option value="">Pilih Parent (Opsional)</option>
                                 @foreach($parentAccounts as $parent)
-                                    <option value="{{ $parent->id }}" {{ old('parent_id', $account->parent_id) == $parent->id ? 'selected' : '' }}>
+                                    <option value="{{ $parent->id }}" {{ $chart_of_account->parent_id == $parent->id ? 'selected' : '' }}>
                                         {{ $parent->code }} - {{ $parent->name }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('parent_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label>Status</label>
-                            <select name="is_active" class="form-control">
-                                <option value="1" {{ old('is_active', $account->is_active) == 1 ? 'selected' : '' }}>Aktif</option>
-                                <option value="0" {{ old('is_active', $account->is_active) == 0 ? 'selected' : '' }}>Nonaktif</option>
-                            </select>
+                            <small class="form-text text-muted">Kosongkan jika ini adalah akun induk (root account)</small>
+                            <div class="invalid-feedback" id="parent_id-error"></div>
                         </div>
                     </div>
-
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <div class="form-group">
-                            <label>Deskripsi</label>
-                            <textarea name="description" class="form-control" rows="3">{{ old('description', $account->description) }}</textarea>
+                            <label for="is_active">Status</label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" value="1"
+                                       {{ $chart_of_account->is_active == 1 ? 'checked' : '' }}>
+                                <label class="custom-control-label" for="is_active">Aktif</label>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Deskripsi</label>
+                    <textarea class="form-control" 
+                              id="description" name="description" rows="3">{{ $chart_of_account->description }}</textarea>
+                    <div class="invalid-feedback" id="description-error"></div>
                 </div>
 
                 <div class="mt-3">
@@ -133,4 +99,165 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('custom_js')
+<script>
+$(document).ready(function() {
+    let accountTypes = {};
+    let categoriesByType = {};
+    const currentType = '{{ old('type', $chart_of_account->type) }}';
+    const currentCategory = '{{ old('category', $chart_of_account->category) }}';
+
+    // Load account types and categories from server
+    function loadAccountTypesAndCategories() {
+        $.ajax({
+            url: '{{ route('chart-of-accounts.types-categories') }}',
+            type: 'GET',
+            success: function(response) {
+                accountTypes = response.types;
+                categoriesByType = response.categoriesByType;
+                
+                // Populate type dropdown
+                populateTypeDropdown();
+                
+                // Initialize categories if type is already selected
+                if (currentType) {
+                    updateCategories();
+                    // Set values after categories are populated
+                    setTimeout(function() {
+                        $('#type').val(currentType);
+                        
+                        // Try to set category value
+                        if (currentCategory) {
+                            $('#category').val(currentCategory);
+                            
+                            // If category is not found in current type, force set the value
+                            if (!$('#category').val()) {
+                                $('#category option[value="' + currentCategory + '"]').prop('selected', true);
+                            }
+                        }
+                    }, 200); // Increased timeout to ensure categories are loaded
+                }
+            },
+            error: function(xhr) {
+                Swal.fire('Error!', 'Gagal memuat data tipe dan kategori akun.', 'error');
+            }
+        });
+    }
+
+    // Populate type dropdown
+    function populateTypeDropdown() {
+        const typeSelect = $('#type');
+        typeSelect.find('option:not(:first)').remove();
+        
+        Object.keys(accountTypes).forEach(function(value) {
+            const label = accountTypes[value];
+            const selected = currentType === value ? 'selected' : '';
+            typeSelect.append(`<option value="${value}" ${selected}>${label}</option>`);
+        });
+    }
+
+    // Type change handler
+    $('#type').on('change', function() {
+        updateCategories();
+    });
+
+    // Function untuk update categories based on type
+    function updateCategories() {
+        const type = $('#type').val();
+        const categorySelect = $('#category');
+        
+        // Clear existing options but keep the first one
+        categorySelect.find('option:not(:first)').remove();
+        categorySelect.find('optgroup').remove();
+
+        if (categoriesByType[type]) {
+            Object.keys(categoriesByType[type]).forEach(function(value) {
+                const label = categoriesByType[type][value];
+                const selected = currentCategory === value ? 'selected' : '';
+                categorySelect.append(`<option value="${value}" ${selected}>${label}</option>`);
+            });
+        }
+        
+        // If current category is not in the current type, show all categories as fallback
+        if (currentCategory && (!categoriesByType[type] || !categoriesByType[type][currentCategory])) {
+            // Clear and show all categories
+            categorySelect.find('option:not(:first)').remove();
+            Object.keys(categoriesByType).forEach(function(typeKey) {
+                if (categoriesByType[typeKey]) {
+                    Object.keys(categoriesByType[typeKey]).forEach(function(value) {
+                        const label = categoriesByType[typeKey][value];
+                        const selected = currentCategory === value ? 'selected' : '';
+                        categorySelect.append(`<option value="${value}" ${selected}>${label}</option>`);
+                    });
+                }
+            });
+        }
+    }
+
+    // Load data on page load
+    loadAccountTypesAndCategories();
+
+    // Form submission handler
+    $('#editAccountForm').on('submit', function(e) {
+        e.preventDefault();
+        updateAccount();
+    });
+
+    // Function untuk update account
+    function updateAccount() {
+        const formData = {
+            code: $('#code').val(),
+            name: $('#name').val(),
+            type: $('#type').val(),
+            category: $('#category').val(),
+            parent_id: $('#parent_id').val() || null,
+            description: $('#description').val(),
+            is_active: $('#is_active').val(),
+            _token: '{{ csrf_token() }}',
+            _method: 'PUT'
+        };
+
+
+
+        $.ajax({
+            url: '{{ route('chart-of-accounts.update', $chart_of_account->id) }}',
+            type: 'POST',
+            data: formData,
+            beforeSend: function() {
+                $('.btn-primary').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').text('');
+            },
+            success: function(response) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: response.message || 'Akun berhasil diupdate.',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = '{{ route('chart-of-accounts.index') }}';
+                });
+            },
+            error: function(xhr) {
+                if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    console.log('Validation errors:', errors);
+                    Object.keys(errors).forEach(function(field) {
+                        $(`#${field}`).addClass('is-invalid');
+                        $(`#${field}-error`).text(errors[field][0]);
+                    });
+                } else {
+                    Swal.fire('Error!', 'Terjadi kesalahan saat menyimpan data.', 'error');
+                }
+            },
+            complete: function() {
+                $('.btn-primary').prop('disabled', false).html('<i class="fas fa-save mr-1"></i> Update');
+            }
+        });
+    }
+});
+</script>
+@endpush 

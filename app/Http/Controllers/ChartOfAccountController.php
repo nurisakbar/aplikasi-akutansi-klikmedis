@@ -16,6 +16,8 @@ use Illuminate\Http\JsonResponse;
 use App\Exports\ChartOfAccountsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\AccountType;
+use App\Enums\AccountCategory;
 
 class ChartOfAccountController extends Controller
 {
@@ -155,20 +157,18 @@ class ChartOfAccountController extends Controller
     /**
      * Show the form for editing the specified chart of account.
      */
-    public function edit(Request $request, string $id): View|JsonResponse
+    public function edit(Request $request, AccountancyChartOfAccount $chart_of_account): View|JsonResponse
     {
-        $account = $this->findAccountOrFail($request, $id);
-
         if ($request->ajax()) {
-            return response()->json($account);
+            return response()->json($chart_of_account);
         }
 
-        $parentAccounts = AccountancyChartOfAccount::where('id', '!=', $id)
+        $parentAccounts = AccountancyChartOfAccount::where('id', '!=', $chart_of_account->id)
             ->active()
             ->orderBy('code')
             ->get();
 
-        return view('chart_of_accounts.edit', compact('account', 'parentAccounts'));
+        return view('chart_of_accounts.edit', compact('chart_of_account', 'parentAccounts'));
     }
 
     /**
@@ -242,6 +242,45 @@ class ChartOfAccountController extends Controller
     public function export()
     {
         return Excel::download(new ChartOfAccountsExport(), 'chart_of_accounts.xlsx');
+    }
+
+    /**
+     * Get account types and categories for AJAX request.
+     */
+    public function getAccountTypesAndCategories(): JsonResponse
+    {
+        $types = AccountType::getOptions();
+        $categories = AccountCategory::getOptions();
+        
+        // Group categories by type
+        $categoriesByType = [
+            'asset' => [
+                AccountCategory::CURRENT_ASSET->value => AccountCategory::CURRENT_ASSET->getLabel(),
+                AccountCategory::FIXED_ASSET->value => AccountCategory::FIXED_ASSET->getLabel(),
+                AccountCategory::OTHER_ASSET->value => AccountCategory::OTHER_ASSET->getLabel(),
+            ],
+            'liability' => [
+                AccountCategory::CURRENT_LIABILITY->value => AccountCategory::CURRENT_LIABILITY->getLabel(),
+                AccountCategory::LONG_TERM_LIABILITY->value => AccountCategory::LONG_TERM_LIABILITY->getLabel(),
+            ],
+            'equity' => [
+                AccountCategory::EQUITY->value => AccountCategory::EQUITY->getLabel(),
+            ],
+            'revenue' => [
+                AccountCategory::OPERATING_REVENUE->value => AccountCategory::OPERATING_REVENUE->getLabel(),
+                AccountCategory::OTHER_REVENUE->value => AccountCategory::OTHER_REVENUE->getLabel(),
+            ],
+            'expense' => [
+                AccountCategory::OPERATING_EXPENSE->value => AccountCategory::OPERATING_EXPENSE->getLabel(),
+                AccountCategory::OTHER_EXPENSE->value => AccountCategory::OTHER_EXPENSE->getLabel(),
+            ],
+        ];
+
+        return response()->json([
+            'types' => $types,
+            'categories' => $categories,
+            'categoriesByType' => $categoriesByType
+        ]);
     }
 
     /**

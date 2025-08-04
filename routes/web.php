@@ -66,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Chart of Accounts - accessible by all authenticated users
     Route::get('chart-of-accounts/export', [ChartOfAccountController::class, 'export'])->name('chart-of-accounts.export');
+    Route::get('chart-of-accounts/types-categories', [ChartOfAccountController::class, 'getAccountTypesAndCategories'])->name('chart-of-accounts.types-categories');
     Route::resource('chart-of-accounts', ChartOfAccountController::class);
 });
 

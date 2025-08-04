@@ -105,7 +105,7 @@
                 ],
                 pageLength: 25,
                 language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+                    url: '{{ asset('js/datatables-id.json') }}'
                 }
             });
 

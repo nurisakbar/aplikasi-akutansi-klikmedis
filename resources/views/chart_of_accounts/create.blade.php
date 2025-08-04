@@ -36,11 +36,6 @@
                             <label for="type">Tipe <span class="text-danger">*</span></label>
                             <select class="form-control" id="type" name="type" required>
                                 <option value="">Pilih Tipe</option>
-                                <option value="asset" {{ old('type') == 'asset' ? 'selected' : '' }}>Asset</option>
-                                <option value="liability" {{ old('type') == 'liability' ? 'selected' : '' }}>Liability</option>
-                                <option value="equity" {{ old('type') == 'equity' ? 'selected' : '' }}>Equity</option>
-                                <option value="revenue" {{ old('type') == 'revenue' ? 'selected' : '' }}>Revenue</option>
-                                <option value="expense" {{ old('type') == 'expense' ? 'selected' : '' }}>Expense</option>
                             </select>
                             <div class="invalid-feedback" id="type-error"></div>
                         </div>
@@ -107,6 +102,48 @@
 @push('custom_js')
 <script>
 $(document).ready(function() {
+    let accountTypes = {};
+    let categoriesByType = {};
+
+    // Load account types and categories from server
+    function loadAccountTypesAndCategories() {
+        $.ajax({
+            url: '{{ route('chart-of-accounts.types-categories') }}',
+            type: 'GET',
+            success: function(response) {
+                accountTypes = response.types;
+                categoriesByType = response.categoriesByType;
+                
+                // Populate type dropdown
+                populateTypeDropdown();
+                
+                // Initialize categories if type is already selected
+                if ($('#type').val()) {
+                    updateCategories();
+                    setTimeout(function() {
+                        $('#category').val('{{ old('category') }}');
+                    }, 100);
+                }
+            },
+            error: function(xhr) {
+                console.error('Error loading account types and categories:', xhr);
+                Swal.fire('Error!', 'Gagal memuat data tipe dan kategori akun.', 'error');
+            }
+        });
+    }
+
+    // Populate type dropdown
+    function populateTypeDropdown() {
+        const typeSelect = $('#type');
+        typeSelect.find('option:not(:first)').remove();
+        
+        Object.keys(accountTypes).forEach(function(value) {
+            const label = accountTypes[value];
+            const selected = '{{ old('type') }}' === value ? 'selected' : '';
+            typeSelect.append(`<option value="${value}" ${selected}>${label}</option>`);
+        });
+    }
+
     // Type change handler
     $('#type').on('change', function() {
         updateCategories();
@@ -118,43 +155,16 @@ $(document).ready(function() {
         const categorySelect = $('#category');
         categorySelect.find('option:not(:first)').remove();
 
-        const categories = {
-            'asset': [
-                { value: 'current_asset', label: 'Current Asset' },
-                { value: 'fixed_asset', label: 'Fixed Asset' },
-                { value: 'other_asset', label: 'Other Asset' }
-            ],
-            'liability': [
-                { value: 'current_liability', label: 'Current Liability' },
-                { value: 'long_term_liability', label: 'Long Term Liability' }
-            ],
-            'equity': [
-                { value: 'equity', label: 'Equity' }
-            ],
-            'revenue': [
-                { value: 'operating_revenue', label: 'Operating Revenue' },
-                { value: 'other_revenue', label: 'Other Revenue' }
-            ],
-            'expense': [
-                { value: 'operating_expense', label: 'Operating Expense' },
-                { value: 'other_expense', label: 'Other Expense' }
-            ]
-        };
-
-        if (categories[type]) {
-            categories[type].forEach(function(category) {
-                categorySelect.append(`<option value="${category.value}">${category.label}</option>`);
+        if (categoriesByType[type]) {
+            Object.keys(categoriesByType[type]).forEach(function(value) {
+                const label = categoriesByType[type][value];
+                categorySelect.append(`<option value="${value}">${label}</option>`);
             });
         }
     }
 
-    // Initialize categories if type is already selected
-    if ($('#type').val()) {
-        updateCategories();
-        setTimeout(function() {
-            $('#category').val('{{ old('category') }}');
-        }, 100);
-    }
+    // Load data on page load
+    loadAccountTypesAndCategories();
 
     // Form submission handler
     $('form').on('submit', function(e) {

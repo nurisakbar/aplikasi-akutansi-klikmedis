@@ -151,12 +151,7 @@
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: '{{ route('chart-of-accounts.index') }}',
-                    error: function (xhr, error, thrown) {
-                        console.error('DataTables error:', error);
-                        console.error('XHR:', xhr);
-                        console.error('Thrown:', thrown);
-                    }
+                    url: '{{ route('chart-of-accounts.index') }}'
                 },
                 columns: [{
                         data: 'code_formatted',

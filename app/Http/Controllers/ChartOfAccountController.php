@@ -25,20 +25,25 @@ class ChartOfAccountController extends Controller
     protected function getCompanyId(): string|null
     {
         if (!Auth::check()) {
-            abort(401, 'User tidak terautentikasi');
+            \Log::warning('ChartOfAccount: User tidak terautentikasi');
+            return null;
         }
 
         $user = Auth::user();
+        \Log::info('ChartOfAccount: User authenticated - ' . $user->email);
 
         // Superadmin bisa melihat semua data
         if ($user->hasRole('superadmin')) {
+            \Log::info('ChartOfAccount: User is superadmin, returning null for company_id');
             return null;
         }
 
         if (!$user->accountancy_company_id) {
-            abort(403, 'User tidak terkait dengan perusahaan manapun');
+            \Log::warning('ChartOfAccount: User tidak terkait dengan perusahaan manapun - ' . $user->email);
+            return null;
         }
 
+        \Log::info('ChartOfAccount: User company_id - ' . $user->accountancy_company_id);
         return $user->accountancy_company_id;
     }
 
@@ -50,15 +55,7 @@ class ChartOfAccountController extends Controller
         if ($request->ajax()) {
             // Handle parent_only request for modal dropdown
             if ($request->has('parent_only')) {
-                $companyId = $this->getCompanyId();
-                $query = AccountancyChartOfAccount::query();
-
-                // Filter by company_id if not superadmin
-                if ($companyId) {
-                    $query->getByCompanyId($companyId);
-                }
-
-                $accounts = $query->active()
+                $accounts = AccountancyChartOfAccount::active()
                     ->orderBy('code')
                     ->get(['id', 'code', 'name']);
 
@@ -74,59 +71,42 @@ class ChartOfAccountController extends Controller
     /**
      * Get DataTables response for chart of accounts.
      */
-    private function getDataTableResponse(Request $request): JsonResponse
+        private function getDataTableResponse(Request $request): JsonResponse
     {
-        try {
-            $companyId = $this->getCompanyId();
+        $query = AccountancyChartOfAccount::with('parent');
 
-            $query = AccountancyChartOfAccount::query();
+        $datatable = DataTables::of($query)
+            ->addColumn('code_formatted', function (AccountancyChartOfAccount $account) {
+                return '<span class="badge badge-info">' . e($account->code) . '</span>';
+            })
+            ->addColumn('name_formatted', function (AccountancyChartOfAccount $account) {
+                $indent = '';
+                if ($account->level > 1) {
+                    $indent = '<span style="margin-left: ' . (($account->level - 1) * 20) . 'px;">└─</span>';
+                }
+                return $indent . e($account->name);
+            })
+            ->addColumn('type_formatted', function (AccountancyChartOfAccount $account) {
+                return '<span class="badge badge-' . $account->type_badge_class . '">' . ucfirst($account->type->value) . '</span>';
+            })
+            ->addColumn('category_formatted', function (AccountancyChartOfAccount $account) {
+                return $account->formatted_category;
+            })
+            ->addColumn('parent_formatted', function (AccountancyChartOfAccount $account) {
+                return $account->parent ? e($account->parent->full_name) : '-';
+            })
+            ->addColumn('status_formatted', function (AccountancyChartOfAccount $account) {
+                $badgeClass = $account->is_active ? 'success' : 'danger';
+                $status = $account->is_active ? 'Aktif' : 'Nonaktif';
+                return '<span class="badge badge-' . $badgeClass . '">' . $status . '</span>';
+            })
+            ->addColumn('actions', function (AccountancyChartOfAccount $account) {
+                return view('chart_of_accounts.partials.actions', compact('account'))->render();
+            })
+            ->rawColumns(['code_formatted', 'name_formatted', 'type_formatted', 'status_formatted', 'actions'])
+            ->make(true);
 
-            // Filter by company_id if not superadmin
-            if ($companyId) {
-                $query->getByCompanyId($companyId);
-            }
-
-            $query->with('parent');
-
-            $datatable = DataTables::of($query)
-                ->addColumn('code_formatted', function (AccountancyChartOfAccount $account) {
-                    return '<span class="badge badge-info">' . e($account->code) . '</span>';
-                })
-                ->addColumn('name_formatted', function (AccountancyChartOfAccount $account) {
-                    $indent = '';
-                    if ($account->level > 1) {
-                        $indent = '<span style="margin-left: ' . (($account->level - 1) * 20) . 'px;">└─</span>';
-                    }
-                    return $indent . e($account->name);
-                })
-                ->addColumn('type_formatted', function (AccountancyChartOfAccount $account) {
-                    return '<span class="badge badge-' . $account->type_badge_class . '">' . ucfirst($account->type) . '</span>';
-                })
-                ->addColumn('category_formatted', function (AccountancyChartOfAccount $account) {
-                    return $account->formatted_category;
-                })
-                ->addColumn('parent_formatted', function (AccountancyChartOfAccount $account) {
-                    return $account->parent ? e($account->parent->full_name) : '-';
-                })
-                ->addColumn('status_formatted', function (AccountancyChartOfAccount $account) {
-                    $badgeClass = $account->is_active ? 'success' : 'danger';
-                    $status = $account->is_active ? 'Aktif' : 'Nonaktif';
-                    return '<span class="badge badge-' . $badgeClass . '">' . $status . '</span>';
-                })
-                ->addColumn('actions', function (AccountancyChartOfAccount $account) {
-                    return view('chart_of_accounts.partials.actions', compact('account'))->render();
-                })
-                ->rawColumns(['code_formatted', 'name_formatted', 'type_formatted', 'status_formatted', 'actions'])
-                ->make(true);
-
-            return $datatable;
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Terjadi kesalahan saat memuat data',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        return $datatable;
     }
 
     /**
@@ -139,7 +119,7 @@ class ChartOfAccountController extends Controller
         
         // Filter by company_id if not superadmin
         if ($companyId) {
-            $query->getByCompanyId($companyId);
+            $query->where('accountancy_company_id', $companyId);
         }
         
         $parentAccounts = $query->active()
@@ -232,7 +212,7 @@ class ChartOfAccountController extends Controller
         
         // Filter by company_id if not superadmin
         if ($companyId) {
-            $query->getByCompanyId($companyId);
+            $query->where('accountancy_company_id', $companyId);
         }
         
         $parentAccounts = $query->where('id', '!=', $id)
@@ -328,7 +308,7 @@ class ChartOfAccountController extends Controller
         
         // Filter by company_id if not superadmin
         if ($companyId) {
-            $query->getByCompanyId($companyId);
+            $query->where('accountancy_company_id', $companyId);
         }
         
         return $query->where('id', $id)->firstOrFail();

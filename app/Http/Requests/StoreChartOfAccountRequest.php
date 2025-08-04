@@ -20,7 +20,7 @@ class StoreChartOfAccountRequest extends FormRequest
 
         $rules = [
             'code' => 'required|string|max:20',
-            'name' => 'required|string|max:3',
+            'name' => 'required|string|max:100',
             'type' => 'required|in:asset,liability,equity,revenue,expense',
             'category' => 'required|in:current_asset,fixed_asset,other_asset,current_liability,long_term_liability,equity,operating_revenue,other_revenue,operating_expense,other_expense',
             'description' => 'nullable|string',

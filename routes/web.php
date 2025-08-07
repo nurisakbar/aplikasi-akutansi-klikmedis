@@ -89,6 +89,7 @@ Route::get('taxes/export', [TaxController::class, 'export'])->name('taxes.export
 Route::resource('taxes', TaxController::class);
 
 // Master Data - Customers (Pelanggan)
+Route::get('customers/export', [CustomerController::class, 'export'])->name('customers.export');
 Route::resource('customers', CustomerController::class);
 
 // Master Data - Suppliers (Pemasok)

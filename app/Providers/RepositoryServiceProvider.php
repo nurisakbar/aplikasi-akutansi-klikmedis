@@ -23,6 +23,7 @@ use App\Repositories\Interfaces\GeneralLedgerRepositoryInterface;
 use App\Repositories\Interfaces\BalanceSheetRepositoryInterface;
 use App\Repositories\Interfaces\ProfitLossRepositoryInterface;
 use App\Repositories\Interfaces\TrialBalanceRepositoryInterface;
+use App\Repositories\AccountancyCustomer\AccountancyCustomerRepositoryInterface;
 
 // Repository Implementations
 use App\Repositories\ChartOfAccountRepository;
@@ -39,6 +40,7 @@ use App\Repositories\GeneralLedgerRepository;
 use App\Repositories\BalanceSheetRepository;
 use App\Repositories\ProfitLossRepository;
 use App\Repositories\TrialBalanceRepository;
+use App\Repositories\AccountancyCustomer\AccountancyCustomerRepository;
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -66,6 +68,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(BalanceSheetRepositoryInterface::class, BalanceSheetRepository::class);
         $this->app->bind(ProfitLossRepositoryInterface::class, ProfitLossRepository::class);
         $this->app->bind(TrialBalanceRepositoryInterface::class, TrialBalanceRepository::class);
+        $this->app->bind(AccountancyCustomerRepositoryInterface::class, AccountancyCustomerRepository::class);
     }
 
     /**

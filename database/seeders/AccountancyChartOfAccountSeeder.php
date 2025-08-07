@@ -109,7 +109,7 @@ class AccountancyChartOfAccountSeeder extends Seeder
 
             // Create accounts with proper hierarchy
             $createdAccounts = [];
-            
+
             foreach ($accounts as $accountData) {
                 $parentId = null;
                 

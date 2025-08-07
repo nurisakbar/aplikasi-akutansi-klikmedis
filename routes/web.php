@@ -108,10 +108,9 @@ Route::resource('journal-entries', JournalEntryController::class);
 Route::post('journal-entries/{journalEntry}/post', [JournalEntryController::class, 'post'])->name('journal-entries.post');
 
 // Transactional Data - Cash & Bank (Kas & Bank)
-Route::get('cash-bank', [CashBankController::class, 'index'])->name('cash-bank.index');
 Route::get('cash-bank/export', [CashBankController::class, 'export'])->name('cash-bank.export');
-Route::get('cash-bank/create', [CashBankController::class, 'create'])->name('cash-bank.create');
-Route::post('cash-bank', [CashBankController::class, 'store'])->name('cash-bank.store');
+Route::resource('cash-bank', CashBankController::class)->except(['show']);
+Route::post('cash-bank/{cashBank}/post', [CashBankController::class, 'post'])->name('cash-bank.post');
 
 // Transactional Data - Accounts Receivable (Piutang)
 Route::get('accounts-receivable', [AccountsReceivableController::class, 'index'])->name('accounts-receivable.index');

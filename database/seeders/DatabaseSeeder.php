@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             AccountancyCustomerSeeder::class,
             AccountancySupplierSeeder::class,
             AccountancyJournalEntrySeeder::class,
+            AccountancyCashBankTransactionSeeder::class,
         ]);
     }
 }

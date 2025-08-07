@@ -62,7 +62,8 @@ class AuthService implements AuthServiceInterface
             return [
                 'success' => true,
                 'user' => $user,
-                'token' => $token
+                'token' => $token,
+                'message' => 'Login berhasil'
             ];
         }
 

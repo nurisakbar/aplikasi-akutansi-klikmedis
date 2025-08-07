@@ -35,30 +35,27 @@ class LoginController extends Controller
     public function login(LoginRequest $request)
     {
         try {
-            if ($request->ajax()) {
-                $result = $this->authService->login($request->only(['email', 'password']));
+            $result = $this->authService->login($request->only(['email', 'password']));
 
-                if ($result['success']) {
+            if ($result['success']) {
+                if ($request->ajax()) {
                     return response()->json([
                         'success' => true,
                         'message' => $result['message'] ?? 'Login berhasil',
                         'redirect' => $this->getRedirectUrl(),
                         'token' => $result['token'] ?? null
                     ])->withCookie('auth_token', $result['token'] ?? null, 60 * 24 * 7); // 7 days
-                } else {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $result['message'] ?? 'Email atau password salah'
-                    ], 422);
                 }
-            }
 
-            // Non-AJAX fallback
-            $result = $this->authService->login($request->only(['email', 'password']));
-
-            if ($result['success']) {
                 return redirect()->intended($this->getRedirectUrl())
                     ->with('success', $result['message'] ?? 'Login berhasil');
+            }
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message'] ?? 'Email atau password salah'
+                ], 401);
             }
 
             return back()->withErrors([
@@ -67,7 +64,8 @@ class LoginController extends Controller
         } catch (ValidationException $e) {
             if ($request->ajax()) {
                 return response()->json([
-                    'message' => 'The given data was invalid.',
+                    'success' => false,
+                    'message' => 'Data yang diberikan tidak valid.',
                     'errors' => $e->errors(),
                 ], 422);
             }

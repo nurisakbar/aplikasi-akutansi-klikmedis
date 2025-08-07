@@ -25,8 +25,8 @@ class AuthService implements AuthServiceInterface
             // Create company
             $company = $this->authRepository->createCompany($companyData);
 
-                    // Create user with accountancy_company_id
-        $userData['company_id'] = $company->id;
+            // Create user with accountancy_company_id
+            $userData['company_id'] = $company->id;
             $user = $this->authRepository->createUser($userData);
 
             // Assign company-admin role
@@ -53,40 +53,54 @@ class AuthService implements AuthServiceInterface
 
     public function login(array $credentials)
     {
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-            
-            // Create Sanctum token for the user
-            $token = $user->createToken('web-token')->plainTextToken;
-            
+        try {
+            if (Auth::attempt($credentials)) {
+                $user = Auth::user();
+                
+                // Create Sanctum token for the user
+                $token = $user->createToken('web-token', ['*'], now()->addDays(7))->plainTextToken;
+                
+                return [
+                    'success' => true,
+                    'user' => $user,
+                    'token' => $token,
+                    'message' => 'Login berhasil'
+                ];
+            }
+
             return [
-                'success' => true,
-                'user' => $user,
-                'token' => $token,
-                'message' => 'Login berhasil'
+                'success' => false,
+                'message' => 'Email atau password salah'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat login: ' . $e->getMessage()
             ];
         }
-
-        return [
-            'success' => false,
-            'message' => 'Email atau password salah'
-        ];
     }
 
     public function logout()
     {
-        $user = Auth::user();
-        
-        if ($user) {
-            // Revoke all tokens for the user
-            $user->tokens()->delete();
+        try {
+            $user = Auth::user();
+            
+            if ($user) {
+                // Revoke all tokens for the user
+                $user->tokens()->delete();
+            }
+            
+            Auth::logout();
+            
+            return [
+                'success' => true,
+                'message' => 'Berhasil logout'
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat logout: ' . $e->getMessage()
+            ];
         }
-        
-        Auth::logout();
-        
-        return [
-            'success' => true,
-            'message' => 'Berhasil logout'
-        ];
     }
 }

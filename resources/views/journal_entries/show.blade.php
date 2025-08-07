@@ -25,8 +25,8 @@
                 <tr>
                     <th>Status</th>
                     <td>
-                        <span class="badge badge-{{ $journalEntry->status === 'posted' ? 'success' : 'secondary' }}">
-                            {{ ucfirst($journalEntry->status) }}
+                        <span class="badge badge-{{ $journalEntry->status_badge_class }}">
+                            {{ $journalEntry->formatted_status }}
                         </span>
                         @if($journalEntry->isDraft())
                             <form action="{{ route('journal-entries.post', $journalEntry->id) }}" method="POST" style="display:inline-block;">
@@ -77,17 +77,34 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($journalEntry->lines as $line)
+                    @foreach($journalEntry->accountancyJournalEntryLines as $line)
                         <tr>
-                            <td>{{ $line->account->code }} - {{ $line->account->name }}</td>
+                            <td>{{ $line->accountancyChartOfAccount->code }} - {{ $line->accountancyChartOfAccount->name }}</td>
                             <td>{{ number_format($line->debit, 2) }}</td>
                             <td>{{ number_format($line->credit, 2) }}</td>
                             <td>{{ $line->description }}</td>
                         </tr>
                     @endforeach
                 </tbody>
+                <tfoot>
+                    <tr class="table-info">
+                        <th>Total</th>
+                        <th>{{ number_format($journalEntry->accountancyJournalEntryLines->sum('debit'), 2) }}</th>
+                        <th>{{ number_format($journalEntry->accountancyJournalEntryLines->sum('credit'), 2) }}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
             </table>
-            <a href="{{ route('journal-entries.index') }}" class="btn btn-secondary">Kembali</a>
+            <div class="mt-3">
+                <a href="{{ route('journal-entries.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+                @if($journalEntry->isDraft())
+                    <a href="{{ route('journal-entries.edit', $journalEntry->id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                @endif
+            </div>
         </div>
     </div>
 </div>

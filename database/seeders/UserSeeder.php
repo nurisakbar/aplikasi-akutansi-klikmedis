@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\AccountancyCompany;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -16,9 +17,11 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get roles
-        $superadminRole = Role::where('name', 'superadmin')->first();
-        $companyAdminRole = Role::where('name', 'company-admin')->first();
+        $this->command->info('Creating Users...');
+
+        // Get or create roles
+        $superadminRole = Role::firstOrCreate(['name' => 'superadmin']);
+        $companyAdminRole = Role::firstOrCreate(['name' => 'company-admin']);
 
         // Get companies
         $companies = AccountancyCompany::all();
@@ -26,27 +29,42 @@ class UserSeeder extends Seeder
         if ($companies->count() > 0) {
             // Create company admin users for each company
             foreach ($companies as $company) {
-                $user = User::create([
-                    'name' => 'Admin ' . $company->name,
-                    'email' => 'admin@' . strtolower(str_replace(' ', '', $company->name)) . '.com',
-                    'password' => Hash::make('password123'),
-                    'accountancy_company_id' => $company->id,
-                ]);
+                $email = 'admin@' . strtolower(str_replace(' ', '', $company->name)) . '.com';
+                
+                $user = User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'id' => (string) Str::uuid(),
+                        'name' => 'Admin ' . $company->name,
+                        'email' => $email,
+                        'password' => Hash::make('password123'),
+                        'accountancy_company_id' => $company->id,
+                        'email_verified_at' => now(),
+                    ]
+                );
 
                 $user->assignRole($companyAdminRole);
+                $this->command->info('Created user: ' . $user->name . ' for company: ' . $company->name);
             }
         }
 
-        // Create a default superadmin user if no companies exist
-        if ($companies->count() === 0) {
-            $user = User::create([
+        // Create a default superadmin user
+        $superadminEmail = 'superadmin@klikmedis.com';
+        $superadmin = User::firstOrCreate(
+            ['email' => $superadminEmail],
+            [
+                'id' => (string) Str::uuid(),
                 'name' => 'Super Admin',
-                'email' => 'admin@klikmedis.com',
+                'email' => $superadminEmail,
                 'password' => Hash::make('password123'),
-                'accountancycompany_id' => null,
-            ]);
+                'accountancy_company_id' => null,
+                'email_verified_at' => now(),
+            ]
+        );
 
-            $user->assignRole($superadminRole);
-        }
+        $superadmin->assignRole($superadminRole);
+        $this->command->info('Created superadmin: ' . $superadmin->name);
+
+        $this->command->info('Users created successfully!');
     }
 }

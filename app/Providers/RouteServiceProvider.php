@@ -28,6 +28,15 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Configure route model binding for UUID models
+        Route::bind('journalEntry', function ($value) {
+            return \App\Models\AccountancyJournalEntry::findOrFail($value);
+        });
+        
+        Route::bind('chart_of_account', function ($value) {
+            return \App\Models\AccountancyChartOfAccount::findOrFail($value);
+        });
+
         $this->routes(function () {
             Route::middleware('api')
                 ->prefix('api')

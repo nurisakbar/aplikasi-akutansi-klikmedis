@@ -2,46 +2,81 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AccountancyJournalEntry\StoreJournalEntryRequest;
+use App\Http\Requests\AccountancyJournalEntry\UpdateJournalEntryRequest;
+use App\Services\AccountancyJournalEntry\JournalEntryService;
+use App\Repositories\AccountancyJournalEntry\AccountancyJournalEntryRepositoryInterface;
 use App\Models\AccountancyJournalEntry;
-use App\Models\AccountancyJournalEntryLine;
 use App\Models\AccountancyChartOfAccount;
-use Illuminate\Http\Request as BaseRequest;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use App\Exports\JournalEntriesExport;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-use Yajra\DataTables\Facades\DataTables;
-use Illuminate\Http\JsonResponse;
-use App\Http\Requests\StoreJournalEntryRequest;
-use App\Http\Requests\UpdateJournalEntryRequest;
-use App\Repositories\Interfaces\AccountancyJournalEntryRepositoryInterface;
-use App\Services\JournalEntryService;
-use App\Exports\JournalEntriesExport;
-use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Yajra\DataTables\Facades\DataTables;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Enums\JournalEntryStatus;
+use App\Models\AccountancyCompany;
 
 class JournalEntryController extends Controller
 {
-    protected $service;
-    protected $repository;
+    public function __construct(
+        private JournalEntryService $service, 
+        private AccountancyJournalEntryRepositoryInterface $repository
+    ) {}
 
-    public function __construct(JournalEntryService $service, AccountancyJournalEntryRepositoryInterface $repository)
+    private function getCompanyId(): string
     {
-        $this->service = $service;
-        $this->repository = $repository;
+        $user = Auth::user();
+        
+        if ($user->hasRole('superadmin')) {
+            // For superadmin, use Global System company ID
+            $globalCompany = AccountancyCompany::where('name', 'Global System')->first();
+            return $globalCompany ? $globalCompany->id : $user->accountancy_company_id;
+        }
+        
+        return $user->accountancy_company_id;
     }
 
-    public function index(BaseRequest $request): View|JsonResponse
+    private function ensureHasCompany(): void
     {
+        $user = Auth::user();
+        
+        if (!$user->accountancy_company_id && !$user->hasRole('superadmin')) {
+            abort(403, 'User tidak memiliki company yang valid.');
+        }
+    }
+
+    private function authorizeJournalEntry(AccountancyJournalEntry $journalEntry): void
+    {
+        $companyId = $this->getCompanyId();
+        
+        if ($journalEntry->accountancy_company_id !== $companyId) {
+            abort(403, 'Unauthorized access to journal entry.');
+        }
+    }
+
+    public function index(Request $request): View|JsonResponse
+    {
+        $this->ensureHasCompany();
+        
         if ($request->ajax()) {
             return $this->getDataTableResponse($request);
         }
+        
         return view('journal_entries.index');
     }
 
-    private function getDataTableResponse(BaseRequest $request): JsonResponse
+    private function getDataTableResponse(Request $request): JsonResponse
     {
-        $query = AccountancyJournalEntry::withCount('accountancyJournalEntryLines');
+        $companyId = $this->getCompanyId();
+        
+        $query = AccountancyJournalEntry::withCount('accountancyJournalEntryLines')
+            ->where('accountancy_company_id', $companyId);
+            
         if ($request->filled('date_from')) {
             $query->where('date', '>=', $request->input('date_from'));
         }
@@ -50,9 +85,12 @@ class JournalEntryController extends Controller
         }
         return DataTables::of($query)
             ->addColumn('status_badge', function ($entry) {
-                $badge = $entry->status === 'posted' ? 'success' : 'secondary';
-                $label = $entry->status === 'posted' ? 'Posted' : 'Draft';
-                return '<span class="badge badge-' . $badge . '">' . $label . '</span>';
+                $badgeClass = $entry->status_badge_class;
+                $label = $entry->formatted_status;
+                return '<span class="badge badge-' . $badgeClass . '">' . $label . '</span>';
+            })
+            ->addColumn('lines_count', function ($entry) {
+                return $entry->accountancy_journal_entry_lines_count;
             })
             ->addColumn('actions', function (AccountancyJournalEntry $entry) {
                 return view('journal_entries.partials.actions', compact('entry'))->render();
@@ -63,54 +101,162 @@ class JournalEntryController extends Controller
 
     public function create(): View
     {
-        $accounts = AccountancyChartOfAccount::orderBy('code')->get();
+        $this->ensureHasCompany();
+        
+        $companyId = $this->getCompanyId();
+        
+        $accounts = AccountancyChartOfAccount::active()
+            ->where('accountancy_company_id', $companyId)
+            ->orderBy('code')
+            ->get();
+            
         return view('journal_entries.create', compact('accounts'));
     }
 
-    public function store(StoreJournalEntryRequest $request)
+    public function store(StoreJournalEntryRequest $request): JsonResponse|RedirectResponse
     {
-        $data = $request->validated();
-        if ($request->hasFile('attachment')) {
-            $data['attachment'] = $request->file('attachment');
-        }
+        $this->ensureHasCompany();
+        
         try {
-            $this->service->create($data);
+            DB::beginTransaction();
+            
+            $data = $request->validated();
+            
+            // Handle file upload
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('journal_attachments', $filename, 'public');
+                $data['attachment'] = $filename;
+            }
+            
+            $journalEntry = $this->service->create($data);
+            
+            DB::commit();
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Jurnal berhasil disimpan.',
+                    'data' => $journalEntry
+                ]);
+            }
+            
             return redirect()->route('journal-entries.index')->with('success', 'Jurnal berhasil disimpan.');
+            
         } catch (\Exception $e) {
+            DB::rollBack();
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 422);
+            }
+            
             return back()->withInput()->withErrors(['lines' => $e->getMessage()]);
         }
     }
 
     public function show(AccountancyJournalEntry $journalEntry): View
     {
+        $this->ensureHasCompany();
+        
+        // Check if user can access this journal entry
+        $this->authorizeJournalEntry($journalEntry);
+        
         $journalEntry->load('accountancyJournalEntryLines.accountancyChartOfAccount');
         return view('journal_entries.show', compact('journalEntry'));
     }
 
     public function edit(AccountancyJournalEntry $journalEntry): View
     {
+        $this->ensureHasCompany();
+        
+        // Check if user can access this journal entry
+        $this->authorizeJournalEntry($journalEntry);
+        
         $journalEntry->load('accountancyJournalEntryLines.accountancyChartOfAccount');
-        $accounts = AccountancyChartOfAccount::orderBy('code')->get();
+        
+        $companyId = $this->getCompanyId();
+        
+        $accounts = AccountancyChartOfAccount::active()
+            ->where('accountancy_company_id', $companyId)
+            ->orderBy('code')
+            ->get();
+            
         return view('journal_entries.edit', compact('journalEntry', 'accounts'));
     }
 
-    public function update(UpdateJournalEntryRequest $request, AccountancyJournalEntry $journalEntry)
+    public function update(UpdateJournalEntryRequest $request, AccountancyJournalEntry $journalEntry): JsonResponse|RedirectResponse
     {
-        $data = $request->validated();
-        if ($request->hasFile('attachment')) {
-            $data['attachment'] = $request->file('attachment');
-        }
+        $this->ensureHasCompany();
+        
         try {
+            DB::beginTransaction();
+            
+            $data = $request->validated();
+            
+            // Handle file upload
+            if ($request->hasFile('attachment')) {
+                $file = $request->file('attachment');
+                $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+                $file->storeAs('journal_attachments', $filename, 'public');
+                $data['attachment'] = $filename;
+            }
+            
             $this->service->update($journalEntry, $data);
+            
+            DB::commit();
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Jurnal berhasil diupdate.',
+                    'data' => $journalEntry->fresh()
+                ]);
+            }
+            
             return redirect()->route('journal-entries.index')->with('success', 'Jurnal berhasil diupdate.');
+            
         } catch (\Exception $e) {
+            DB::rollBack();
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 422);
+            }
+            
             return back()->withInput()->withErrors(['lines' => $e->getMessage()]);
         }
     }
 
-    public function destroy(AccountancyJournalEntry $journalEntry, BaseRequest $request): JsonResponse
+    public function destroy(AccountancyJournalEntry $journalEntry, Request $request): JsonResponse
     {
+        $this->ensureHasCompany();
+        
         try {
+            // Check if user can access this journal entry
+            $this->authorizeJournalEntry($journalEntry);
+            
+            // Check if journal entry is posted
+            if ($journalEntry->isPosted()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jurnal yang sudah diposting tidak dapat dihapus.'
+                ], 422);
+            }
+
+            // Check if journal entry has lines
+            if ($journalEntry->accountancyJournalEntryLines()->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jurnal yang memiliki baris jurnal tidak dapat dihapus.'
+                ], 422);
+            }
+
             $journalEntry->delete();
             return response()->json([
                 'success' => true,
@@ -119,13 +265,15 @@ class JournalEntryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat menghapus jurnal.'
-            ]);
+                'message' => 'Terjadi kesalahan saat menghapus jurnal: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-    public function export(BaseRequest $request)
+    public function export(Request $request)
     {
+        $this->ensureHasCompany();
+        
         $dateFrom = $request->input('date_from');
         $dateTo = $request->input('date_to');
         return Excel::download(new JournalEntriesExport($dateFrom, $dateTo), 'journal_entries.xlsx');
@@ -133,22 +281,16 @@ class JournalEntryController extends Controller
 
     public function post(AccountancyJournalEntry $journalEntry)
     {
+        $this->ensureHasCompany();
+        
+        // Check if user can access this journal entry
+        $this->authorizeJournalEntry($journalEntry);
+        
         try {
             $this->service->post($journalEntry);
             return redirect()->route('journal-entries.show', $journalEntry->id)->with('success', 'Jurnal berhasil diposting.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
-    }
-
-    public function uploadAttachment(BaseRequest $request)
-    {
-        $request->validate([
-            'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-        ]);
-        $file = $request->file('file');
-        $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
-        $file->storeAs('journal_attachments', $filename, 'public');
-        return response()->json(['filename' => $filename]);
     }
 }

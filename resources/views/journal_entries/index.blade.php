@@ -86,7 +86,13 @@ $(document).ready(function() {
 
     $('#journal-table').on('click', '.btn-delete', function(e) {
         e.preventDefault();
-        const deleteUrl = $(this).data('url');
+        const journalId = $(this).data('id');
+
+        if (!journalId) {
+            Swal.fire('Error!', 'ID jurnal tidak ditemukan.', 'error');
+            return;
+        }
+
         Swal.fire({
             title: 'Konfirmasi Hapus',
             text: 'Apakah Anda yakin ingin menghapus jurnal ini?',
@@ -98,28 +104,71 @@ $(document).ready(function() {
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
-                $.ajax({
-                    url: deleteUrl,
-                    type: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        _method: 'DELETE'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            Swal.fire('Terhapus!', response.message, 'success');
-                            table.ajax.reload();
-                        } else {
-                            Swal.fire('Gagal!', response.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error!', 'Terjadi kesalahan saat menghapus data.', 'error');
-                    }
-                });
+                deleteJournalAjax(journalId);
             }
         });
     });
+
+    // Function untuk delete dengan AJAX
+    function deleteJournalAjax(journalId) {
+        $.ajax({
+            url: '{{ route('journal-entries.destroy', ':id') }}'.replace(':id', journalId),
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                _method: 'DELETE'
+            },
+            beforeSend: function() {
+                Swal.fire({
+                    title: 'Menghapus...',
+                    text: 'Sedang memproses permintaan Anda',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            },
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: response.message || 'Jurnal berhasil dihapus.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    // Reload DataTable
+                    table.ajax.reload(null, false);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: response.message || 'Gagal menghapus jurnal.'
+                    });
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat menghapus data.';
+
+                if (xhr.status === 404) {
+                    errorMessage = 'Data tidak ditemukan.';
+                } else if (xhr.status === 403) {
+                    errorMessage = 'Anda tidak memiliki izin untuk menghapus data ini.';
+                } else if (xhr.status === 422) {
+                    errorMessage = 'Data tidak dapat dihapus karena masih digunakan.';
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: errorMessage
+                });
+            }
+        });
+    }
 
     $('#export-excel').on('click', function() {
         let dateFrom = $('#filter-date-from').val();

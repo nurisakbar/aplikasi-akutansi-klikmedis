@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\JournalEntryStatus;
 
 class AccountancyJournalEntry extends Model
 {
@@ -16,6 +17,7 @@ class AccountancyJournalEntry extends Model
 
     protected $fillable = [
         'id',
+        'accountancy_company_id',
         'journal_number',
         'date',
         'description',
@@ -28,6 +30,7 @@ class AccountancyJournalEntry extends Model
 
     protected $casts = [
         'history' => 'array',
+        'status' => JournalEntryStatus::class,
     ];
 
     public static function generateJournalNumber(): string
@@ -55,12 +58,34 @@ class AccountancyJournalEntry extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function accountancyCompany(): BelongsTo
+    {
+        return $this->belongsTo(AccountancyCompany::class, 'accountancy_company_id');
+    }
+
     public function isDraft(): bool
     {
-        return $this->status === 'draft';
+        return $this->status->isDraft();
     }
+
     public function isPosted(): bool
     {
-        return $this->status === 'posted';
+        return $this->status->isPosted();
+    }
+
+    /**
+     * Get formatted status label.
+     */
+    public function getFormattedStatusAttribute(): string
+    {
+        return $this->status->getLabel();
+    }
+
+    /**
+     * Get status badge class.
+     */
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return $this->status->getBadgeClass();
     }
 }

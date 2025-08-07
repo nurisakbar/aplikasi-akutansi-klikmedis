@@ -106,7 +106,6 @@ Route::resource('suppliers', SupplierController::class);
 Route::get('journal-entries/export', [JournalEntryController::class, 'export'])->name('journal-entries.export');
 Route::resource('journal-entries', JournalEntryController::class);
 Route::post('journal-entries/{journalEntry}/post', [JournalEntryController::class, 'post'])->name('journal-entries.post');
-Route::post('journal-entries/upload-attachment', [JournalEntryController::class, 'uploadAttachment'])->name('journal-entries.upload-attachment');
 
 // Transactional Data - Cash & Bank (Kas & Bank)
 Route::get('cash-bank', [CashBankController::class, 'index'])->name('cash-bank.index');

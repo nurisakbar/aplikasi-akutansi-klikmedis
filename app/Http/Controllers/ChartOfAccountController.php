@@ -241,7 +241,7 @@ class ChartOfAccountController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Tidak dapat menghapus akun yang memiliki sub-akun.'
-                ]);
+                ], 422);
             }
 
             $chart_of_account->delete();
@@ -253,8 +253,8 @@ class ChartOfAccountController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat menghapus akun.'
-            ]);
+                'message' => 'Terjadi kesalahan saat menghapus akun: ' . $e->getMessage()
+            ], 500);
         }
     }
 
